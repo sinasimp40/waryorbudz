@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a physical cannabis marketplace (inspired by bulkbuddy.co) for selling flower, edibles, extracts, mushrooms, and vape products. The application features a dark, cyberpunk-inspired aesthetic with cryptocurrency payment integration. It includes both a customer-facing storefront and an admin panel for product management. The shop name, logo, and branding are fully customizable through the admin panel. Checkout requires a shipping address for physical delivery.
+This is the WarriorBudz cannabis marketplace for selling flower, edibles, extracts, mushrooms, and vape products. The application features a dark, cyberpunk-inspired aesthetic with cryptocurrency payment integration. It includes both a customer-facing storefront and an admin panel for product management. The shop name, logo, and branding are fully customizable through the admin panel. Checkout requires a shipping address for physical delivery.
 
 ## User Preferences
 

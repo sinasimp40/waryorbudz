@@ -1,6 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-const TOKEN_KEY = "buybit_auth_token";
+const TOKEN_KEY = "warriorbudz_auth_token";
 
 export function getAuthHeaders(): HeadersInit {
   if (typeof window === 'undefined') {

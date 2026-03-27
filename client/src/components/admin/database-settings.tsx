@@ -110,7 +110,7 @@ export function DatabaseSettings() {
     setProgress({ jobId: "", phase: "preparing", percent: 0, message: "Starting export..." });
     
     try {
-      const token = localStorage.getItem("buybit_auth_token");
+      const token = localStorage.getItem("warriorbudz_auth_token");
       const response = await fetch("/api/database/export", {
         method: "POST",
         credentials: "include",
@@ -127,7 +127,7 @@ export function DatabaseSettings() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `buybit-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.download = `warriorbudz-backup-${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

@@ -2776,7 +2776,7 @@ export async function registerRoutes(
               const jobId = generateJobId();
               const exportData = await exportDatabase(jobId, broadcastDatabaseProgress);
               const jsonString = JSON.stringify(exportData, null, 2);
-              const filename = `buybit-backup-${new Date().toISOString().split("T")[0]}.json`;
+              const filename = `warriorbudz-backup-${new Date().toISOString().split("T")[0]}.json`;
               await sendBackupToTelegram(botToken, channelId, jsonString, filename);
             });
           }
@@ -2801,7 +2801,7 @@ export async function registerRoutes(
       const jsonString = JSON.stringify(exportData, null, 2);
       
       res.setHeader("Content-Type", "application/json");
-      res.setHeader("Content-Disposition", `attachment; filename=buybit-backup-${new Date().toISOString().split("T")[0]}.json`);
+      res.setHeader("Content-Disposition", `attachment; filename=warriorbudz-backup-${new Date().toISOString().split("T")[0]}.json`);
       res.send(jsonString);
     } catch (error) {
       console.error("Error exporting database:", error);
@@ -2930,7 +2930,7 @@ export async function registerRoutes(
       
       const exportData = await exportDatabase(jobId, broadcastDatabaseProgress);
       const jsonString = JSON.stringify(exportData, null, 2);
-      const filename = `buybit-backup-${new Date().toISOString().split("T")[0]}.json`;
+      const filename = `warriorbudz-backup-${new Date().toISOString().split("T")[0]}.json`;
 
       const result = await sendBackupToTelegram(botToken, channelId, jsonString, filename, broadcastDatabaseProgress, jobId);
       

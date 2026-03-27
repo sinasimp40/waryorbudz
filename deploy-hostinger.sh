@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ============================================================
-# Beng Deployment Script for Hostinger VPS
+# WarriorBudz Deployment Script for Hostinger VPS
 # ============================================================
-# This script installs everything needed to run Beng on Ubuntu
+# This script installs everything needed to run WarriorBudz on Ubuntu
 # - Node.js, PostgreSQL, PM2, Nginx, HTTPS (Let's Encrypt)
 # - Runs on port 4000 internally, proxied via Nginx
 # ============================================================
@@ -21,13 +21,13 @@ NC='\033[0m' # No Color
 
 # Configuration
 APP_PORT=4000
-APP_NAME="beng"
-APP_DIR="/var/www/beng"
+APP_NAME="warriorbudz"
+APP_DIR="/var/www/warriorbudz"
 DOMAIN=""  # Will be set by user input
 
 echo -e "${CYAN}"
 echo "============================================================"
-echo "       Beng Deployment Script for Hostinger VPS"
+echo "       WarriorBudz Deployment Script for Hostinger VPS"
 echo "============================================================"
 echo -e "${NC}"
 
@@ -38,7 +38,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Get domain from user
-echo -e "${YELLOW}Enter your domain name (e.g., buybit.cloud):${NC}"
+echo -e "${YELLOW}Enter your domain name (e.g., warriorbudz.com):${NC}"
 read -r DOMAIN
 if [[ -z "$DOMAIN" ]]; then
     echo -e "${RED}Domain name is required!${NC}"
@@ -130,8 +130,8 @@ fi
 
 # Create database and user
 DB_PASSWORD=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 24)
-DB_NAME="beng_db"
-DB_USER="beng_user"
+DB_NAME="warriorbudz_db"
+DB_USER="warriorbudz_user"
 
 echo -e "${YELLOW}Setting up PostgreSQL database...${NC}"
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;" 2>/dev/null || true
@@ -316,7 +316,7 @@ server {
     }
 
     location / {
-        return 200 'Beng is being configured...';
+        return 200 'WarriorBudz is being configured...';
         add_header Content-Type text/plain;
     }
 }
@@ -469,7 +469,7 @@ echo "============================================================"
 echo "          DEPLOYMENT COMPLETE!"
 echo "============================================================"
 echo -e "${NC}"
-echo -e "${GREEN}Your Beng store is now live!${NC}"
+echo -e "${GREEN}Your WarriorBudz store is now live!${NC}"
 echo ""
 echo -e "Website URL:     ${YELLOW}https://$DOMAIN${NC}"
 echo -e "Admin Login:     ${YELLOW}$ADMIN_EMAIL${NC}"
@@ -496,7 +496,7 @@ echo -e "${GREEN}============================================================${N
 
 # Save credentials to file
 cat > $APP_DIR/CREDENTIALS.txt << EOF
-Beng Deployment Credentials
+WarriorBudz Deployment Credentials
 ==============================
 Generated: $(date)
 
