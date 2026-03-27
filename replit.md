@@ -64,6 +64,16 @@ Preferred communication style: Simple, everyday language.
 - **API**: POST `/api/products/:id/variants` (link), DELETE `/api/products/:id/variants/:childId` (unlink)
 - **Types**: `ProductWithVariants = Product & { variants?: Product[] }` in shared schema
 
+### Tracking History
+- **Table**: `tracking_history` — id, orderId, trackingNumber, previousTrackingNumber, editedBy, editedAt
+- **Verification**: Manual payment orders (E-Transfer/Shakepay) require a tracking number to verify
+- **Edit History**: Every tracking number add/update is logged with previous value, editor email, and timestamp
+- **Admin UI**: Edit tracking (pencil icon), view history (history icon) per order in admin table
+- **User Dashboard**: Tracking number displayed as Canada Post link; "History" button opens tracking change log
+- **Email Notifications**: Distinct emails for new tracking vs. updated tracking (different colors/wording)
+- **Canada Post URL**: `https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor={trackingNumber}`
+- **Access Control**: User tracking endpoint requires auth + ownership check; admin history endpoint requires admin role
+
 ### Key Design Patterns
 - **Shared Types**: Common schema types shared between client and server via `@shared/*` path alias
 - **Modal-Driven UX**: Product details and payment flows use modal dialogs for seamless experience

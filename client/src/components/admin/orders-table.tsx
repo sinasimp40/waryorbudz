@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Order } from "@shared/schema";
+import type { Order, TrackingHistory } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,10 +28,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ShoppingCart, Clock, CheckCircle2, XCircle, Loader2, Copy, Search, Filter, RefreshCw, Trash2, Shield, Package, Send } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ShoppingCart, Clock, CheckCircle2, XCircle, Loader2, Copy, Search, Filter, RefreshCw, Trash2, Shield, Package, History, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface OrdersTableProps {
@@ -73,6 +79,18 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
   const [verifyingOrder, setVerifyingOrder] = useState<string | null>(null);
+  const [editingTrackingOrder, setEditingTrackingOrder] = useState<string | null>(null);
+  const [historyOrderId, setHistoryOrderId] = useState<string | null>(null);
+
+  const { data: trackingHistoryData } = useQuery<TrackingHistory[]>({
+    queryKey: ["/api/admin/orders", historyOrderId, "tracking-history"],
+    queryFn: async () => {
+      if (!historyOrderId) return [];
+      const res = await apiRequest("GET", `/api/admin/orders/${historyOrderId}/tracking-history`);
+      return res.json();
+    },
+    enabled: !!historyOrderId,
+  });
 
   const syncMutation = useMutation({
     mutationFn: async () => {
@@ -120,7 +138,7 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: async ({ orderId, trackingNumber }: { orderId: string; trackingNumber?: string }) => {
+    mutationFn: async ({ orderId, trackingNumber }: { orderId: string; trackingNumber: string }) => {
       const res = await apiRequest("PATCH", `/api/admin/orders/${orderId}/verify`, { trackingNumber });
       return res.json();
     },
@@ -129,9 +147,10 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/orders"] });
       setVerifyingOrder(null);
+      setTrackingInputs({});
       toast({
         title: "Payment Verified",
-        description: "Order has been marked as completed and the customer has been notified.",
+        description: "Order has been marked as completed with tracking number. Customer has been notified.",
       });
     },
     onError: (error: Error) => {
@@ -148,20 +167,23 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
       const res = await apiRequest("PATCH", `/api/admin/orders/${orderId}/tracking`, { trackingNumber });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/orders"] });
       setTrackingInputs({});
+      setEditingTrackingOrder(null);
       toast({
-        title: "Tracking Added",
-        description: "Tracking number has been saved and the customer has been notified.",
+        title: data.isUpdate ? "Tracking Updated" : "Tracking Added",
+        description: data.isUpdate
+          ? "Tracking number has been updated and the customer has been notified via email."
+          : "Tracking number has been saved and the customer has been notified.",
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add tracking number",
+        description: error.message || "Failed to update tracking number",
         variant: "destructive",
       });
     },
@@ -201,7 +223,8 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
       order.orderId.toLowerCase().includes(searchLower) ||
       (order.productName && order.productName.toLowerCase().includes(searchLower)) ||
       (order.email && order.email.toLowerCase().includes(searchLower)) ||
-      (order.sentStock && order.sentStock.toLowerCase().includes(searchLower));
+      (order.sentStock && order.sentStock.toLowerCase().includes(searchLower)) ||
+      (order.trackingNumber && order.trackingNumber.toLowerCase().includes(searchLower));
     
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     
@@ -214,7 +237,7 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search orders by ID, product, email, or stock sent..."
+            placeholder="Search orders by ID, product, email, tracking, or stock sent..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -278,7 +301,7 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="hidden sm:table-cell">Currency</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="hidden xl:table-cell">Sent Stock</TableHead>
+                <TableHead className="hidden xl:table-cell">Tracking</TableHead>
                 <TableHead className="hidden lg:table-cell">Date</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -337,16 +360,16 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden xl:table-cell">
-                      {order.sentStock ? (
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs font-mono text-green-400 truncate max-w-[150px]">
-                            {order.sentStock}
+                      {order.trackingNumber ? (
+                        <div className="flex items-center gap-1">
+                          <code className="text-xs font-mono text-blue-400 truncate max-w-[120px]">
+                            {order.trackingNumber}
                           </code>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => copyText(order.sentStock!, "Stock")}
+                            className="h-5 w-5 p-0"
+                            onClick={() => copyText(order.trackingNumber!, "Tracking")}
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
@@ -363,7 +386,10 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         {isManualOrder(order) && (order.status === "pending" || order.status === "awaiting_manual") && (
-                          <AlertDialog open={verifyingOrder === order.orderId} onOpenChange={(open) => setVerifyingOrder(open ? order.orderId : null)}>
+                          <AlertDialog open={verifyingOrder === order.orderId} onOpenChange={(open) => {
+                            setVerifyingOrder(open ? order.orderId : null);
+                            if (!open) setTrackingInputs(prev => { const next = {...prev}; delete next[order.orderId]; return next; });
+                          }}>
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
@@ -391,27 +417,34 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <div className="px-6 pb-2">
-                                <label className="text-sm font-medium text-foreground">Tracking Number (optional)</label>
+                                <label className="text-sm font-medium text-foreground">
+                                  Tracking Number <span className="text-red-500">*</span>
+                                </label>
                                 <Input
-                                  placeholder="Canada Post tracking number"
+                                  placeholder="Canada Post tracking number (required)"
                                   value={trackingInputs[order.orderId] || ""}
                                   onChange={(e) => setTrackingInputs(prev => ({ ...prev, [order.orderId]: e.target.value }))}
                                   className="mt-1.5"
                                   data-testid={`input-tracking-verify-${order.id}`}
                                 />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  A tracking number is required to verify the order.
+                                </p>
                               </div>
                               <AlertDialogFooter>
                                 <AlertDialogCancel data-testid="button-cancel-verify">Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => verifyMutation.mutate({
-                                    orderId: order.orderId,
-                                    trackingNumber: trackingInputs[order.orderId]?.trim() || undefined,
-                                  })}
-                                  disabled={verifyMutation.isPending}
+                                  onClick={() => {
+                                    const tn = trackingInputs[order.orderId]?.trim();
+                                    if (tn) {
+                                      verifyMutation.mutate({ orderId: order.orderId, trackingNumber: tn });
+                                    }
+                                  }}
+                                  disabled={verifyMutation.isPending || !trackingInputs[order.orderId]?.trim()}
                                   className="bg-green-600 hover:bg-green-700 text-white"
                                   data-testid="button-confirm-verify"
                                 >
-                                  {verifyMutation.isPending ? "Verifying..." : "Verify Payment"}
+                                  {verifyMutation.isPending ? "Verifying..." : "Verify & Ship"}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -464,16 +497,74 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                         )}
 
                         {order.trackingNumber && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-blue-500 h-7 w-7"
-                            title={`Tracking: ${order.trackingNumber}`}
-                            onClick={() => copyText(order.trackingNumber!, "Tracking number")}
-                            data-testid={`button-copy-tracking-${order.id}`}
-                          >
-                            <Package className="w-3.5 h-3.5" />
-                          </Button>
+                          <>
+                            <AlertDialog open={editingTrackingOrder === order.orderId} onOpenChange={(open) => {
+                              if (open) {
+                                setEditingTrackingOrder(order.orderId);
+                                setTrackingInputs(prev => ({ ...prev, [order.orderId]: order.trackingNumber || "" }));
+                              } else {
+                                setEditingTrackingOrder(null);
+                              }
+                            }}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-orange-500 hover:text-orange-600 h-7 w-7"
+                                  title="Edit tracking number"
+                                  data-testid={`button-edit-tracking-${order.id}`}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Edit Tracking Number</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Update tracking for order "{order.orderId}".
+                                    <span className="block mt-1 text-orange-400">
+                                      Current: {order.trackingNumber}
+                                    </span>
+                                    <span className="block mt-1 text-xs">
+                                      The customer will receive an email notification about this change.
+                                    </span>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="px-6 pb-2">
+                                  <Input
+                                    placeholder="New tracking number"
+                                    value={trackingInputs[order.orderId] || ""}
+                                    onChange={(e) => setTrackingInputs(prev => ({ ...prev, [order.orderId]: e.target.value }))}
+                                    data-testid={`input-tracking-edit-${order.id}`}
+                                  />
+                                </div>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => {
+                                      const tn = trackingInputs[order.orderId]?.trim();
+                                      if (tn) trackingMutation.mutate({ orderId: order.orderId, trackingNumber: tn });
+                                    }}
+                                    disabled={trackingMutation.isPending || !trackingInputs[order.orderId]?.trim() || trackingInputs[order.orderId]?.trim() === order.trackingNumber}
+                                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                                    data-testid="button-confirm-edit-tracking"
+                                  >
+                                    {trackingMutation.isPending ? "Updating..." : "Update Tracking"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-purple-500 hover:text-purple-600 h-7 w-7"
+                              title="View tracking history"
+                              onClick={() => setHistoryOrderId(order.orderId)}
+                              data-testid={`button-tracking-history-${order.id}`}
+                            >
+                              <History className="w-3.5 h-3.5" />
+                            </Button>
+                          </>
                         )}
 
                         <AlertDialog>
@@ -516,6 +607,57 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
           </Table>
         </div>
       )}
+
+      <Dialog open={!!historyOrderId} onOpenChange={(open) => { if (!open) setHistoryOrderId(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Tracking History
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1 mb-2">
+            <p className="text-sm text-muted-foreground">
+              Order: <code className="text-primary">{historyOrderId}</code>
+            </p>
+          </div>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {trackingHistoryData && trackingHistoryData.length > 0 ? (
+              trackingHistoryData.map((entry, index) => (
+                <div
+                  key={entry.id}
+                  className={`p-3 rounded-md border ${index === 0 ? "border-primary/30 bg-primary/5" : "border-border bg-muted/30"}`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <code className="text-sm font-mono text-blue-400">{entry.trackingNumber}</code>
+                    {index === 0 && (
+                      <Badge variant="outline" className="text-xs border-primary text-primary">Current</Badge>
+                    )}
+                    {entry.previousTrackingNumber && (
+                      <Badge variant="outline" className="text-xs border-orange-500 text-orange-400">Edited</Badge>
+                    )}
+                  </div>
+                  {entry.previousTrackingNumber && (
+                    <p className="text-xs text-muted-foreground">
+                      Previous: <s className="text-red-400">{entry.previousTrackingNumber}</s>
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      by {entry.editedBy}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(entry.editedAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">No tracking history found</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

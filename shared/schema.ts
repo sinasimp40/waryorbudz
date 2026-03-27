@@ -317,6 +317,23 @@ export const orders = pgTable("orders", {
   payerContact: text("payer_contact"),
 });
 
+// Tracking history table for recording all tracking number changes
+export const trackingHistory = pgTable("tracking_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: text("order_id").notNull(),
+  trackingNumber: text("tracking_number").notNull(),
+  previousTrackingNumber: text("previous_tracking_number"),
+  editedBy: text("edited_by").notNull(),
+  editedAt: text("edited_at").notNull().default(sql`now()`),
+});
+
+export const insertTrackingHistorySchema = createInsertSchema(trackingHistory).omit({
+  id: true,
+});
+
+export type InsertTrackingHistory = z.infer<typeof insertTrackingHistorySchema>;
+export type TrackingHistory = typeof trackingHistory.$inferSelect;
+
 // Email templates table
 export const emailTemplates = pgTable("email_templates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

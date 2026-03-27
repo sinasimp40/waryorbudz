@@ -11,6 +11,8 @@ import {
   type InsertPasswordResetToken,
   type Review,
   type InsertReview,
+  type TrackingHistory,
+  type InsertTrackingHistory,
   type Statistics,
   type SafeUser,
   users,
@@ -20,6 +22,7 @@ import {
   settings,
   passwordResetTokens,
   reviews,
+  trackingHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -76,6 +79,10 @@ export interface IStorage {
   getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenUsed(token: string): Promise<void>;
   deleteExpiredPasswordResetTokens(): Promise<void>;
+
+  // Tracking History
+  createTrackingHistory(entry: InsertTrackingHistory): Promise<TrackingHistory>;
+  getTrackingHistoryByOrderId(orderId: string): Promise<TrackingHistory[]>;
 
   // Reviews
   getAllReviews(): Promise<Review[]>;
@@ -331,6 +338,15 @@ export class DatabaseStorage implements IStorage {
   async deleteReview(id: string): Promise<boolean> {
     const result = await db.delete(reviews).where(eq(reviews.id, id));
     return true;
+  }
+
+  async createTrackingHistory(entry: InsertTrackingHistory): Promise<TrackingHistory> {
+    const [created] = await db.insert(trackingHistory).values(entry).returning();
+    return created;
+  }
+
+  async getTrackingHistoryByOrderId(orderId: string): Promise<TrackingHistory[]> {
+    return db.select().from(trackingHistory).where(eq(trackingHistory.orderId, orderId)).orderBy(desc(trackingHistory.editedAt));
   }
 }
 

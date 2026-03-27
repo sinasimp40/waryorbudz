@@ -11,11 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useLocation } from "wouter";
-import { User, Package, ShoppingBag, LogOut, ArrowLeft, Search, Filter, Eye, EyeOff, Copy, Check, Key, AlertTriangle, Loader2, ChevronRight } from "lucide-react";
+import { User, Package, ShoppingBag, LogOut, ArrowLeft, Search, Filter, Eye, EyeOff, Copy, Check, Key, AlertTriangle, Loader2, ChevronRight, Truck, History, ExternalLink } from "lucide-react";
 import { useOrderUpdates } from "@/hooks/use-order-updates";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentModal } from "@/components/payment-modal";
-import type { Order } from "@shared/schema";
+import type { Order, TrackingHistory } from "@shared/schema";
 
 export default function Dashboard() {
   const { user, token, logout, isAdmin, sessionInvalidated, isLoading: isAuthLoading } = useAuth();
@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [visibleStock, setVisibleStock] = useState<Record<string, boolean>>({});
   const [copiedStock, setCopiedStock] = useState<string | null>(null);
+  const [trackingHistoryOrderId, setTrackingHistoryOrderId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -60,6 +61,20 @@ export default function Dashboard() {
     setCopiedStock(orderId);
     setTimeout(() => setCopiedStock(null), 2000);
   };
+
+  const { data: trackingHistoryData } = useQuery<TrackingHistory[]>({
+    queryKey: ["/api/orders", trackingHistoryOrderId, "tracking"],
+    queryFn: async () => {
+      if (!trackingHistoryOrderId) return [];
+      const res = await fetch(`/api/orders/${trackingHistoryOrderId}/tracking`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.history || [];
+    },
+    enabled: !!trackingHistoryOrderId,
+  });
 
   useOrderUpdates(user?.email);
 
@@ -417,6 +432,37 @@ export default function Dashboard() {
                           )}
                         </div>
                       </div>
+                      {order.trackingNumber && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <Truck className="w-4 h-4 text-blue-400" />
+                              <span className="text-sm font-medium text-blue-400">Tracking:</span>
+                              <a
+                                href={`https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(order.trackingNumber)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-mono text-blue-400 hover:text-blue-300 underline underline-offset-2 flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`link-tracking-${order.id}`}
+                              >
+                                {order.trackingNumber}
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 gap-1 text-xs text-muted-foreground hover:text-purple-400"
+                              onClick={(e) => { e.stopPropagation(); setTrackingHistoryOrderId(order.orderId); }}
+                              data-testid={`button-tracking-history-${order.id}`}
+                            >
+                              <History className="w-3 h-3" />
+                              History
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                       {order.sentStock && (order.status === "completed" || order.status === "finished") && (
                         <div className="mt-3 pt-3 border-t border-border">
                           <div className="flex items-center justify-between gap-2 mb-2">
@@ -505,6 +551,62 @@ export default function Dashboard() {
           email: selectedOrder.email,
         } : null}
       />
+
+      <Dialog open={!!trackingHistoryOrderId} onOpenChange={(open) => { if (!open) setTrackingHistoryOrderId(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Tracking History
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1 mb-2">
+            <p className="text-sm text-muted-foreground">
+              Order: <code className="text-primary">{trackingHistoryOrderId}</code>
+            </p>
+          </div>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {trackingHistoryData && trackingHistoryData.length > 0 ? (
+              trackingHistoryData.map((entry, index) => (
+                <div
+                  key={entry.id}
+                  className={`p-3 rounded-md border ${index === 0 ? "border-primary/30 bg-primary/5" : "border-border bg-muted/30"}`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <a
+                      href={`https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(entry.trackingNumber)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-mono text-blue-400 hover:text-blue-300 underline underline-offset-2 flex items-center gap-1"
+                    >
+                      {entry.trackingNumber}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                    <div className="flex gap-1">
+                      {index === 0 && (
+                        <Badge variant="outline" className="text-xs border-primary text-primary">Current</Badge>
+                      )}
+                      {entry.previousTrackingNumber && (
+                        <Badge variant="outline" className="text-xs border-orange-500 text-orange-400">Updated</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {entry.previousTrackingNumber && (
+                    <p className="text-xs text-muted-foreground">
+                      Previous: <s className="text-red-400">{entry.previousTrackingNumber}</s>
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {new Date(entry.editedAt).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">No tracking history found</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>

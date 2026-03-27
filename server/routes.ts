@@ -2117,11 +2117,15 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: Verify manual payment and optionally add tracking number
+  // Admin: Verify manual payment (tracking number required)
   app.patch("/api/admin/orders/:orderId/verify", requireAdmin, async (req, res) => {
     try {
       const { orderId } = req.params;
       const { trackingNumber } = req.body;
+
+      if (!trackingNumber?.trim()) {
+        return res.status(400).json({ error: "Tracking number is required to verify an order" });
+      }
 
       const order = await storage.getOrderByOrderId(orderId);
       if (!order) {
@@ -2134,12 +2138,19 @@ export async function registerRoutes(
         return res.status(400).json({ error: "This endpoint is only for manual payment orders" });
       }
 
-      const updates: Record<string, any> = { status: "completed" };
-      if (trackingNumber?.trim()) {
-        updates.trackingNumber = trackingNumber.trim();
-      }
+      const trimmedTracking = trackingNumber.trim();
+      const updates: Record<string, any> = { status: "completed", trackingNumber: trimmedTracking };
 
       await storage.updateOrderByOrderId(orderId, updates);
+
+      await storage.createTrackingHistory({
+        orderId,
+        trackingNumber: trimmedTracking,
+        previousTrackingNumber: null,
+        editedBy: (req.user as any)?.email || "admin",
+        editedAt: new Date().toISOString(),
+      });
+
       const updatedOrder = await storage.getOrderByOrderId(orderId);
 
       if (updatedOrder) {
@@ -2149,7 +2160,7 @@ export async function registerRoutes(
         try {
           await emailService.sendEmail({
             to: updatedOrder.email!,
-            subject: `Order ${orderId} - Payment Verified${trackingNumber ? " & Shipped" : ""}!`,
+            subject: `Order ${orderId} - Payment Verified & Shipped!`,
             html: `
               <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
                 <h2 style="color:#27ae60;">Payment Verified!</h2>
@@ -2159,9 +2170,9 @@ export async function registerRoutes(
                   <p style="margin:4px 0;"><strong>Product:</strong> ${updatedOrder.productName}</p>
                   <p style="margin:4px 0;"><strong>Amount:</strong> $${updatedOrder.totalAmount.toFixed(2)} CAD</p>
                   <p style="margin:4px 0;"><strong>Status:</strong> <span style="color:#27ae60;font-weight:bold;">Verified</span></p>
-                  ${trackingNumber ? `<p style="margin:4px 0;"><strong>Canada Post Tracking:</strong> <a href="https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(trackingNumber.trim())}" style="color:#2980b9;">${trackingNumber.trim()}</a></p>` : ""}
+                  <p style="margin:4px 0;"><strong>Canada Post Tracking:</strong> <a href="https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(trimmedTracking)}" style="color:#2980b9;">${trimmedTracking}</a></p>
                 </div>
-                ${trackingNumber ? '<p>Your order has been shipped! You can track your package using the Canada Post tracking link above.</p>' : '<p>Your order is being prepared and will ship soon. You\'ll receive another email with tracking information.</p>'}
+                <p>Your order has been shipped! You can track your package using the Canada Post tracking link above.</p>
                 <p>Thank you for shopping with ${shopName}!</p>
               </div>
             `,
@@ -2178,7 +2189,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: Add tracking number to any order
+  // Admin: Add or update tracking number on any order (with history)
   app.patch("/api/admin/orders/:orderId/tracking", requireAdmin, async (req, res) => {
     try {
       const { orderId } = req.params;
@@ -2193,7 +2204,20 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Order not found" });
       }
 
-      await storage.updateOrderByOrderId(orderId, { trackingNumber: trackingNumber.trim() });
+      const trimmedTracking = trackingNumber.trim();
+      const previousTracking = order.trackingNumber || null;
+      const isUpdate = !!previousTracking && previousTracking !== trimmedTracking;
+
+      await storage.updateOrderByOrderId(orderId, { trackingNumber: trimmedTracking });
+
+      await storage.createTrackingHistory({
+        orderId,
+        trackingNumber: trimmedTracking,
+        previousTrackingNumber: previousTracking,
+        editedBy: (req.user as any)?.email || "admin",
+        editedAt: new Date().toISOString(),
+      });
+
       const updatedOrder = await storage.getOrderByOrderId(orderId);
 
       if (updatedOrder) {
@@ -2201,18 +2225,30 @@ export async function registerRoutes(
 
         const shopName = await storage.getSetting("shop_name") || "Shop";
         try {
+          const emailSubject = isUpdate
+            ? `Order ${orderId} - Tracking Number Updated`
+            : `Order ${orderId} - Shipped!`;
+          const emailHeading = isUpdate
+            ? "Tracking Number Updated"
+            : "Your Order Has Shipped!";
+          const emailColor = isUpdate ? "#e67e22" : "#2980b9";
+          const bgColor = isUpdate ? "#fdf6ec" : "#f0f7ff";
+          const borderColor = isUpdate ? "#f5d7a0" : "#b3d4fc";
+
           await emailService.sendEmail({
             to: updatedOrder.email!,
-            subject: `Order ${orderId} - Shipped!`,
+            subject: emailSubject,
             html: `
               <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-                <h2 style="color:#2980b9;">Your Order Has Shipped!</h2>
+                <h2 style="color:${emailColor};">${emailHeading}</h2>
                 <p>Hi there,</p>
-                <p>Your order <strong>${orderId}</strong> has been shipped via Canada Post.</p>
-                <div style="background:#f0f7ff;border:1px solid #b3d4fc;border-radius:8px;padding:16px;margin:16px 0;">
+                <p>Your order <strong>${orderId}</strong> ${isUpdate ? "has an updated tracking number" : "has been shipped via Canada Post"}.</p>
+                <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:8px;padding:16px;margin:16px 0;">
                   <p style="margin:4px 0;"><strong>Product:</strong> ${updatedOrder.productName}</p>
-                  <p style="margin:4px 0;"><strong>Canada Post Tracking:</strong> <a href="https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(trackingNumber.trim())}" style="color:#2980b9;">${trackingNumber.trim()}</a></p>
+                  <p style="margin:4px 0;"><strong>Canada Post Tracking:</strong> <a href="https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=${encodeURIComponent(trimmedTracking)}" style="color:#2980b9;">${trimmedTracking}</a></p>
+                  ${isUpdate && previousTracking ? `<p style="margin:4px 0;color:#999;"><strong>Previous Tracking:</strong> <s>${previousTracking}</s></p>` : ""}
                 </div>
+                <p>You can track your package using the Canada Post tracking link above.</p>
                 <p>Thank you for shopping with ${shopName}!</p>
               </div>
             `,
@@ -2222,10 +2258,63 @@ export async function registerRoutes(
         }
       }
 
-      res.json({ success: true, order: updatedOrder });
+      res.json({ success: true, order: updatedOrder, isUpdate });
     } catch (error) {
-      console.error("Error adding tracking:", error);
-      res.status(500).json({ error: "Failed to add tracking number" });
+      console.error("Error updating tracking:", error);
+      res.status(500).json({ error: "Failed to update tracking number" });
+    }
+  });
+
+  // Admin: Get tracking history for an order
+  app.get("/api/admin/orders/:orderId/tracking-history", requireAdmin, async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const history = await storage.getTrackingHistoryByOrderId(orderId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching tracking history:", error);
+      res.status(500).json({ error: "Failed to fetch tracking history" });
+    }
+  });
+
+  // User: Get tracking info for their order (auth + ownership required)
+  app.get("/api/orders/:orderId/tracking", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const token = authHeader.substring(7);
+      const session = sessions.get(token);
+      if (!session || session.expiresAt < new Date()) {
+        return res.status(401).json({ error: "Session expired" });
+      }
+
+      const { orderId } = req.params;
+      const order = await storage.getOrderByOrderId(orderId);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      const user = await storage.getUserByEmail(session.email);
+      const isAdmin = user?.role === "admin";
+      if (!isAdmin && order.email !== session.email) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const history = await storage.getTrackingHistoryByOrderId(orderId);
+      res.json({
+        trackingNumber: order.trackingNumber,
+        history: history.map(h => ({
+          id: h.id,
+          trackingNumber: h.trackingNumber,
+          previousTrackingNumber: h.previousTrackingNumber,
+          editedAt: h.editedAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching tracking info:", error);
+      res.status(500).json({ error: "Failed to fetch tracking info" });
     }
   });
 
