@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { Product } from "@shared/schema";
+import type { Product, OrderItem } from "@shared/schema";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -118,8 +119,22 @@ export function PaymentModal({
   cartItems,
   onCartClear,
 }: PaymentModalProps) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [email, setEmail] = useState("");
+
+  const isMultiItemResumed = !!existingOrder && existingOrder.productName?.includes(" items");
+  const { data: resumedOrderItems } = useQuery<OrderItem[]>({
+    queryKey: ["/api/orders", existingOrder?.orderId, "items"],
+    queryFn: async () => {
+      if (!existingOrder?.orderId || !token) return [];
+      const res = await fetch(`/api/orders/${existingOrder.orderId}/items`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isMultiItemResumed && !!token,
+  });
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("etransfer");
   const [manualPaymentInfo, setManualPaymentInfo] = useState<{ email?: string; handle?: string } | null>(null);
   const [step, setStep] = useState<ModalStep>("form");
@@ -996,6 +1011,16 @@ export function PaymentModal({
                 <span className="text-gray-500">Product</span>
                 <span className="text-gray-900 dark:text-white font-medium text-right max-w-[180px] truncate">{displayName}</span>
               </div>
+              {isMultiItemResumed && resumedOrderItems && resumedOrderItems.length > 0 && (
+                <div className="space-y-1.5 pl-2 border-l-2 border-primary/20 ml-1">
+                  {resumedOrderItems.map(item => (
+                    <div key={item.id} className="flex justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">{item.productName} x{item.quantity}</span>
+                      <span className="text-gray-500 tabular-nums">${(Number(item.price) * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-500">Amount</span>
                 <span className="text-primary font-bold">${totalAmount.toFixed(2)} CAD</span>
@@ -1072,6 +1097,16 @@ export function PaymentModal({
                 <span className="text-gray-500">Product</span>
                 <span className="text-gray-900 dark:text-white font-medium text-right max-w-[180px] truncate">{displayName}</span>
               </div>
+              {isMultiItemResumed && resumedOrderItems && resumedOrderItems.length > 0 && (
+                <div className="space-y-1.5 pl-2 border-l-2 border-primary/20 ml-1">
+                  {resumedOrderItems.map(item => (
+                    <div key={item.id} className="flex justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">{item.productName} x{item.quantity}</span>
+                      <span className="text-gray-500 tabular-nums">${(Number(item.price) * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Quantity</span>
                 <span className="text-gray-900 dark:text-white font-medium">{displayQuantity}</span>

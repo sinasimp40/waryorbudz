@@ -8,7 +8,6 @@ import { FeaturesStrip } from "@/components/features-strip";
 import { ProductGrid } from "@/components/product-grid";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import { PaymentModal, type CartCheckoutItem } from "@/components/payment-modal";
-import { CartDrawer } from "@/components/cart-drawer";
 import { ParticleBackground } from "@/components/particle-background";
 import { UnifiedSearchBar } from "@/components/unified-search-bar";
 import { SocialWidget } from "@/components/social-widget";
@@ -204,7 +203,6 @@ export default function Home() {
         cartItems={cartCheckoutItems.length > 0 ? cartCheckoutItems : undefined}
         onCartClear={clearCart}
       />
-      <CartDrawer onCheckout={handleCartCheckout} />
       <SocialWidget />
     </div>
   );

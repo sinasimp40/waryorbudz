@@ -23,7 +23,7 @@ export function Header({
   const [location, setLocation] = useLocation();
   const isAdminPage = location.startsWith("/admin");
   const { user, isAdmin, isLoading, logout } = useAuth();
-  const { totalItems, setIsOpen: setCartOpen } = useCart();
+  const { totalItems, isOpen: isCartOpen, setIsOpen: setCartOpen } = useCart();
   const { shopName, shopLogo } = useShopSettings();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -84,11 +84,12 @@ export function Header({
             )}
 
             <div className="flex items-center gap-0.5 sm:gap-2">
+              <ThemeToggle />
               {!isAdminPage && (
                 <Button
                   variant="ghost"
                   className="relative h-9 w-9 p-0 sm:w-auto sm:px-3 sm:py-2 gap-2 text-white/70 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10"
-                  onClick={() => setCartOpen(true)}
+                  onClick={() => setCartOpen(!isCartOpen)}
                   data-testid="button-cart"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
@@ -100,7 +101,6 @@ export function Header({
                   )}
                 </Button>
               )}
-              <ThemeToggle />
               <Link href="/reviews">
                 <Button 
                   variant="ghost" 
