@@ -5,6 +5,8 @@ import {
   type InsertProduct,
   type Order,
   type InsertOrder,
+  type OrderItem,
+  type InsertOrderItem,
   type EmailTemplate,
   type InsertEmailTemplate,
   type PasswordResetToken,
@@ -18,6 +20,7 @@ import {
   users,
   products,
   orders,
+  orderItems,
   emailTemplates,
   settings,
   passwordResetTokens,
@@ -53,6 +56,10 @@ export interface IStorage {
   updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
   updateOrderByOrderId(orderId: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
   deleteOrder(id: string): Promise<boolean>;
+
+  // Order Items
+  createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
+  getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]>;
 
   // Statistics
   getStatistics(): Promise<Statistics>;
@@ -192,6 +199,16 @@ export class DatabaseStorage implements IStorage {
   async deleteOrder(id: string): Promise<boolean> {
     const result = await db.delete(orders).where(eq(orders.id, id)).returning();
     return result.length > 0;
+  }
+
+  // Order Items
+  async createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+    const [created] = await db.insert(orderItems).values(item).returning();
+    return created;
+  }
+
+  async getOrderItemsByOrderId(orderId: string): Promise<OrderItem[]> {
+    return db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 
   // Statistics

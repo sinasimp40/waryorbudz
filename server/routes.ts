@@ -189,7 +189,18 @@ async function pollPendingOrders() {
               try {
                 const freshOrder = await storage.getOrderByOrderId(order.orderId);
                 if (freshOrder && !freshOrder.sentStock) {
-                  const stockItem = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
+                  const orderItemsList = await storage.getOrderItemsByOrderId(freshOrder.orderId);
+                  let allFulfilled = true;
+                  if (orderItemsList.length > 0) {
+                    for (const item of orderItemsList) {
+                      const result = await storage.consumeStockItem(item.productId, item.quantity);
+                      if (!result) allFulfilled = false;
+                    }
+                  } else {
+                    const result = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
+                    if (!result) allFulfilled = false;
+                  }
+                  const stockItem = allFulfilled ? "fulfilled" : null;
                   
                   if (stockItem && freshOrder.email) {
                     await storage.updateOrderByOrderId(order.orderId, { 
@@ -197,20 +208,22 @@ async function pollPendingOrders() {
                       sentStock: stockItem 
                     });
                     
-                    // Send email notification
                     try {
                       const template = await storage.getDefaultEmailTemplate();
                       if (template) {
                         const shopName = await storage.getSetting("shop_name") || "Store";
                         const themeColors = await getThemeColors();
+                        const itemsForEmail = orderItemsList.length > 0
+                          ? orderItemsList.map(i => `${i.productName} x${i.quantity}`).join(", ")
+                          : (freshOrder.productName || "Product");
                         await emailService.sendEmail({
                           to: freshOrder.email,
                           subject: template.subject
-                            .replace(/\{\{productName\}\}/g, freshOrder.productName || "Product")
+                            .replace(/\{\{productName\}\}/g, itemsForEmail)
                             .replace(/\{\{shopName\}\}/g, shopName),
                           html: template.htmlContent
                             .replace(/\{\{orderId\}\}/g, freshOrder.orderId)
-                            .replace(/\{\{productName\}\}/g, freshOrder.productName || "Product")
+                            .replace(/\{\{productName\}\}/g, itemsForEmail)
                             .replace(/\{\{quantity\}\}/g, String(freshOrder.quantity))
                             .replace(/\{\{payAmount\}\}/g, String(freshOrder.payAmount || 0))
                             .replace(/\{\{payCurrency\}\}/g, (freshOrder.payCurrency || "").toUpperCase())
@@ -1317,6 +1330,31 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/orders/:orderId/items", async (req, res) => {
+    try {
+      const order = await storage.getOrderByOrderId(req.params.orderId);
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      const authHeader = req.headers.authorization;
+      const isAdminSession = authHeader?.startsWith("Bearer ")
+        ? (() => { const s = sessions.get(authHeader.substring(7)); return s && s.expiresAt > new Date() && s.isAdmin; })()
+        : false;
+      const userSession = authHeader?.startsWith("Bearer ")
+        ? sessions.get(authHeader.substring(7))
+        : null;
+      const isOwner = userSession && userSession.expiresAt > new Date() && userSession.email === order.email;
+      if (!isAdminSession && !isOwner) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const items = await storage.getOrderItemsByOrderId(req.params.orderId);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching order items:", error);
+      res.status(500).json({ error: "Failed to fetch order items" });
+    }
+  });
+
   // Get unique users from orders (for admin)
   app.get("/api/admin/users", async (req, res) => {
     try {
@@ -2043,7 +2081,7 @@ export async function registerRoutes(
   // Manual payment (E-Transfer, Shakepay)
   app.post("/api/payments/manual", paymentLimiter, async (req, res) => {
     try {
-      const { amount, paymentMethod, orderId, email, productName, productId, quantity, payerContact, shippingName, shippingAddress, shippingCity, shippingProvince, shippingPostalCode, shippingCountry } = req.body;
+      const { amount, paymentMethod, orderId, email, productName, productId, quantity, payerContact, shippingName, shippingAddress, shippingCity, shippingProvince, shippingPostalCode, shippingCountry, cartItems } = req.body;
 
       if (!amount || !paymentMethod || !orderId || !email) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -2055,15 +2093,42 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Complete shipping address is required" });
       }
 
+      const rawItems = cartItems && Array.isArray(cartItems) && cartItems.length > 0
+        ? cartItems
+        : [{ productId, productName, quantity: quantity || 1 }];
+
+      let serverTotal = 0;
+      const items: Array<{ productId: string; productName: string; quantity: number; price: number }> = [];
+      for (const item of rawItems) {
+        if (!item.productId) {
+          return res.status(400).json({ error: "Missing product ID" });
+        }
+        const product = await storage.getProduct(item.productId);
+        if (!product) {
+          return res.status(400).json({ error: `Product "${item.productName}" not found` });
+        }
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ error: `Not enough stock for "${product.name}" (available: ${product.stock})` });
+        }
+        const itemPrice = Number(product.price);
+        items.push({ productId: item.productId, productName: product.name, quantity: item.quantity, price: itemPrice });
+        serverTotal += itemPrice * item.quantity;
+      }
+
+      const verifiedAmount = Math.round(serverTotal * 100) / 100;
+
+      const summaryName = items.length === 1 ? items[0].productName : `${items.length} items`;
+      const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
+
       const etransferEmail = await storage.getSetting("etransfer_email") || "";
       const shakepayHandle = await storage.getSetting("shakepay_handle") || "";
 
       await storage.createOrder({
         orderId,
-        productId,
-        productName,
-        quantity: quantity || 1,
-        totalAmount: amount,
+        productId: items[0].productId,
+        productName: summaryName,
+        quantity: totalQty,
+        totalAmount: verifiedAmount,
         payCurrency: paymentMethod,
         status: "pending",
         email,
@@ -2076,7 +2141,18 @@ export async function registerRoutes(
         shippingCountry: shippingCountry.trim(),
       });
 
+      for (const item of items) {
+        await storage.createOrderItem({
+          orderId,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        });
+      }
+
       const shopName = await storage.getSetting("shop_name") || "Shop";
+      const itemsListHtml = items.map((i: any) => `<p style="margin:2px 0;">${i.productName} x${i.quantity} — $${(i.price * i.quantity).toFixed(2)}</p>`).join("");
       try {
         await emailService.sendEmail({
           to: email,
@@ -2087,8 +2163,10 @@ export async function registerRoutes(
               <p>Hi there,</p>
               <p>We've received your order <strong>${orderId}</strong> and it is now awaiting payment verification by our team.</p>
               <div style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin:16px 0;">
-                <p style="margin:4px 0;"><strong>Product:</strong> ${productName}</p>
-                <p style="margin:4px 0;"><strong>Amount:</strong> $${Number(amount).toFixed(2)} CAD</p>
+                <p style="margin:4px 0;font-weight:bold;">Items:</p>
+                ${itemsListHtml}
+                <hr style="border:none;border-top:1px solid #e0e0e0;margin:8px 0;" />
+                <p style="margin:4px 0;"><strong>Total:</strong> $${verifiedAmount.toFixed(2)} CAD</p>
                 <p style="margin:4px 0;"><strong>Payment Method:</strong> ${paymentMethod === "etransfer" ? "E-Transfer" : "Shakepay"}</p>
                 <p style="margin:4px 0;"><strong>Send to:</strong> ${paymentMethod === "etransfer" ? etransferEmail : shakepayHandle}</p>
               </div>
@@ -2101,7 +2179,7 @@ export async function registerRoutes(
         console.error("Failed to send order confirmation email:", emailErr);
       }
 
-      broadcastOrderUpdate("order_created", { orderId, productName, email, totalAmount: amount, status: "pending", payCurrency: paymentMethod });
+      broadcastOrderUpdate("order_created", { orderId, productName: summaryName, email, totalAmount: amount, status: "pending", payCurrency: paymentMethod });
 
       res.json({
         success: true,
@@ -2325,7 +2403,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Payment gateway not configured" });
       }
 
-      const { amount, currency, orderId, email, productName, productId, quantity, shippingName, shippingAddress, shippingCity, shippingProvince, shippingPostalCode, shippingCountry } = req.body;
+      const { amount, currency, orderId, email, productName, productId, quantity, shippingName, shippingAddress, shippingCity, shippingProvince, shippingPostalCode, shippingCountry, cartItems } = req.body;
 
       if (!amount || !currency || !orderId || !email) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -2335,33 +2413,57 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Complete shipping address is required" });
       }
 
-      // Construct IPN callback URL from environment domain
+      const rawItems = cartItems && Array.isArray(cartItems) && cartItems.length > 0
+        ? cartItems
+        : [{ productId: productId || "", productName: productName || "", quantity: quantity || 1 }];
+
+      let serverTotal = 0;
+      const items: Array<{ productId: string; productName: string; quantity: number; price: number }> = [];
+      for (const item of rawItems) {
+        if (!item.productId) {
+          return res.status(400).json({ error: "Missing product ID" });
+        }
+        const product = await storage.getProduct(item.productId);
+        if (!product) {
+          return res.status(400).json({ error: `Product "${item.productName}" not found` });
+        }
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ error: `Not enough stock for "${product.name}" (available: ${product.stock})` });
+        }
+        const itemPrice = Number(product.price);
+        items.push({ productId: item.productId, productName: product.name, quantity: item.quantity, price: itemPrice });
+        serverTotal += itemPrice * item.quantity;
+      }
+
+      const verifiedAmount = Math.round(serverTotal * 100) / 100;
+
+      const summaryName = items.length === 1 ? items[0].productName : `${items.length} items`;
+      const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
+
       const domain = process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
       const ipnCallbackUrl = domain ? `https://${domain}/api/payments/ipn` : undefined;
 
       const payment = await nowPaymentsService.createPayment({
-        price_amount: amount,
+        price_amount: verifiedAmount,
         price_currency: "usd",
         pay_currency: currency.toLowerCase(),
         order_id: orderId,
-        order_description: `Purchase: ${productName}`,
+        order_description: `Purchase: ${summaryName}`,
         ipn_callback_url: ipnCallbackUrl,
       });
 
-      // Capture client IP address
       const ipAddress = req.ip || 
                         req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || 
                         req.headers['x-real-ip']?.toString() || 
                         req.socket.remoteAddress || 
                         'unknown';
 
-      // Save order to database with IP address and shipping info
       const newOrder = await storage.createOrder({
         orderId: orderId,
-        productId: productId || "",
-        productName: productName || "",
-        quantity: quantity || 1,
-        totalAmount: amount,
+        productId: items[0].productId,
+        productName: summaryName,
+        quantity: totalQty,
+        totalAmount: verifiedAmount,
         status: "pending",
         paymentId: payment.payment_id?.toString(),
         payAddress: payment.pay_address,
@@ -2378,10 +2480,17 @@ export async function registerRoutes(
         shippingCountry: shippingCountry || null,
       });
 
-      // Broadcast order creation to admin subscribers
+      for (const item of items) {
+        await storage.createOrderItem({
+          orderId: orderId,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        });
+      }
+
       broadcastOrderUpdate("order_created", newOrder);
-      
-      // Send Telegram notification for new order
       notifyTelegramOrder(newOrder, false);
 
       res.json(payment);
@@ -2441,22 +2550,33 @@ export async function registerRoutes(
           } else {
             processingOrders.add(order_id);
             try {
-              // Re-fetch order to get latest state
               const freshOrder = await storage.getOrderByOrderId(order_id);
               if (freshOrder && !freshOrder.sentStock) {
-                const stockItem = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
-                
-                // Broadcast product update so stock count refreshes in real-time
-                const updatedProduct = await storage.getProduct(freshOrder.productId);
-                if (updatedProduct) {
-                  broadcastProductUpdate("product_updated", updatedProduct);
+                const orderItemsList = await storage.getOrderItemsByOrderId(freshOrder.orderId);
+                let allFulfilled = true;
+                if (orderItemsList.length > 0) {
+                  for (const item of orderItemsList) {
+                    const result = await storage.consumeStockItem(item.productId, item.quantity);
+                    if (!result) allFulfilled = false;
+                    const updatedProduct = await storage.getProduct(item.productId);
+                    if (updatedProduct) broadcastProductUpdate("product_updated", updatedProduct);
+                  }
+                } else {
+                  const result = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
+                  if (!result) allFulfilled = false;
+                  const updatedProduct = await storage.getProduct(freshOrder.productId);
+                  if (updatedProduct) broadcastProductUpdate("product_updated", updatedProduct);
                 }
+                const stockItem = allFulfilled ? "fulfilled" : null;
                 
                 if (stockItem && freshOrder.email) {
+                  const itemsForEmail = orderItemsList.length > 0
+                    ? orderItemsList.map(i => `${i.productName} x${i.quantity}`).join(", ")
+                    : (freshOrder.productName || "Product");
                   await emailService.sendOrderEmail({
                     to: freshOrder.email,
                     orderId: freshOrder.orderId,
-                    productName: freshOrder.productName || "Product",
+                    productName: itemsForEmail,
                     totalAmount: freshOrder.totalAmount,
                     stockItem: stockItem,
                   });
@@ -3357,13 +3477,27 @@ export async function registerRoutes(
                 // Re-fetch order to get latest state
                 const freshOrder = await storage.getOrderByOrderId(status.order_id);
                 if (freshOrder && !freshOrder.sentStock) {
-                  const stockItem = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
+                  const orderItemsList = await storage.getOrderItemsByOrderId(freshOrder.orderId);
+                  let allFulfilled = true;
+                  if (orderItemsList.length > 0) {
+                    for (const item of orderItemsList) {
+                      const result = await storage.consumeStockItem(item.productId, item.quantity);
+                      if (!result) allFulfilled = false;
+                    }
+                  } else {
+                    const result = await storage.consumeStockItem(freshOrder.productId, freshOrder.quantity || 1);
+                    if (!result) allFulfilled = false;
+                  }
+                  const stockItem = allFulfilled ? "fulfilled" : null;
                   
                   if (stockItem && freshOrder.email) {
+                    const itemsForEmail = orderItemsList.length > 0
+                      ? orderItemsList.map(i => `${i.productName} x${i.quantity}`).join(", ")
+                      : (freshOrder.productName || "Product");
                     await emailService.sendOrderEmail({
                       to: freshOrder.email,
                       orderId: freshOrder.orderId,
-                      productName: freshOrder.productName || "Product",
+                      productName: itemsForEmail,
                       totalAmount: freshOrder.totalAmount,
                       stockItem: stockItem,
                     });

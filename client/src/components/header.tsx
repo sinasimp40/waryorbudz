@@ -5,8 +5,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchBar } from "@/components/search-bar";
 import { AuthModal } from "@/components/auth-modal";
 import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
 import { useShopSettings } from "@/hooks/use-shop-settings";
-import { Store, Settings, LogIn, UserPlus, User, LogOut, Sparkles, MessageSquareQuote, Activity } from "lucide-react";
+import { Store, Settings, LogIn, UserPlus, User, LogOut, Sparkles, MessageSquareQuote, Activity, ShoppingCart } from "lucide-react";
 
 interface HeaderProps {
   searchQuery: string;
@@ -22,6 +23,7 @@ export function Header({
   const [location, setLocation] = useLocation();
   const isAdminPage = location.startsWith("/admin");
   const { user, isAdmin, isLoading, logout } = useAuth();
+  const { totalItems, setIsOpen: setCartOpen } = useCart();
   const { shopName, shopLogo } = useShopSettings();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -82,6 +84,22 @@ export function Header({
             )}
 
             <div className="flex items-center gap-0.5 sm:gap-2">
+              {!isAdminPage && (
+                <Button
+                  variant="ghost"
+                  className="relative h-9 w-9 p-0 sm:w-auto sm:px-3 sm:py-2 gap-2 text-white/70 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10"
+                  onClick={() => setCartOpen(true)}
+                  data-testid="button-cart"
+                >
+                  <ShoppingCart className="w-4 h-4 shrink-0" />
+                  <span className="hidden sm:inline">Cart</span>
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 sm:relative sm:top-0 sm:right-0 min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1" data-testid="badge-cart-count">
+                      {totalItems}
+                    </span>
+                  )}
+                </Button>
+              )}
               <ThemeToggle />
               <Link href="/reviews">
                 <Button 

@@ -343,12 +343,29 @@ export const emailTemplates = pgTable("email_templates", {
   isDefault: integer("is_default").default(0),
 });
 
+export const orderItems = pgTable("order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: text("order_id").notNull(),
+  productId: varchar("product_id").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  price: real("price").notNull(),
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+});
+
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
 });
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
+export type OrderWithItems = Order & { items?: OrderItem[] };
 
 export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
   id: true,

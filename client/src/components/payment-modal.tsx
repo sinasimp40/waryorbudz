@@ -54,6 +54,13 @@ interface ExistingOrder {
   payerContact?: string | null;
 }
 
+export interface CartCheckoutItem {
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+}
+
 interface PaymentModalProps {
   product: Product | null;
   quantity: number;
@@ -61,6 +68,8 @@ interface PaymentModalProps {
   onOpenChange: (open: boolean) => void;
   onPaymentComplete: (paymentId: string) => void;
   existingOrder?: ExistingOrder | null;
+  cartItems?: CartCheckoutItem[];
+  onCartClear?: () => void;
 }
 
 type ModalStep = "form" | "processing" | "awaiting_payment" | "awaiting_manual" | "confirming" | "success" | "error" | "expired";
@@ -106,6 +115,8 @@ export function PaymentModal({
   onOpenChange,
   onPaymentComplete,
   existingOrder,
+  cartItems,
+  onCartClear,
 }: PaymentModalProps) {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
@@ -199,7 +210,12 @@ export function PaymentModal({
   const wsRef = useRef<WebSocket | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  const totalAmount = existingOrder ? existingOrder.totalAmount : (product ? product.price * quantity : 0);
+  const isCartCheckout = cartItems && cartItems.length > 0;
+  const totalAmount = existingOrder
+    ? existingOrder.totalAmount
+    : isCartCheckout
+      ? cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
+      : (product ? product.price * quantity : 0);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -345,6 +361,7 @@ export function PaymentModal({
   const isResumedOrder = !!existingOrder;
   const getFullProductName = () => {
     if (existingOrder?.productName) return existingOrder.productName;
+    if (isCartCheckout) return `${cartItems.length} item${cartItems.length > 1 ? "s" : ""}`;
     if (!product) return "";
     if (product.parentId && product.category?.trim()) {
       return `${product.name} - ${product.category.trim()}`;
@@ -352,9 +369,9 @@ export function PaymentModal({
     return product.name;
   };
   const displayName = getFullProductName();
-  const displayQuantity = existingOrder?.quantity || quantity;
+  const displayQuantity = existingOrder?.quantity || (isCartCheckout ? cartItems.reduce((s, i) => s + i.quantity, 0) : quantity);
 
-  if (!product && !existingOrder) return null;
+  if (!product && !existingOrder && !isCartCheckout) return null;
 
   const handleCreatePayment = async () => {
     if (!email) {
@@ -393,6 +410,10 @@ export function PaymentModal({
       const newOrderId = `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       setOrderId(newOrderId);
 
+      const payloadCartItems = isCartCheckout
+        ? cartItems.map(i => ({ productId: i.productId, productName: i.productName, quantity: i.quantity, price: i.price }))
+        : undefined;
+
       if (selectedOption?.isManual) {
         const response = await apiRequest("POST", "/api/payments/manual", {
           amount: totalAmount,
@@ -409,10 +430,12 @@ export function PaymentModal({
           shippingProvince: shippingProvince.trim(),
           shippingPostalCode: shippingPostalCode.trim(),
           shippingCountry: shippingCountry.trim(),
+          cartItems: payloadCartItems,
         });
         const data = await response.json();
         setManualPaymentInfo(data.paymentInfo || {});
         setStep("awaiting_manual");
+        if (onCartClear) onCartClear();
         return;
       }
       
@@ -430,11 +453,13 @@ export function PaymentModal({
         shippingProvince: shippingProvince.trim(),
         shippingPostalCode: shippingPostalCode.trim(),
         shippingCountry: shippingCountry.trim(),
+        cartItems: payloadCartItems,
       });
 
       const payment = await response.json();
       setPaymentData({ ...payment, order_id: newOrderId });
       setStep("awaiting_payment");
+      if (onCartClear) onCartClear();
       
       connectWebSocket(payment.payment_id);
       startPolling(payment.payment_id);
@@ -570,15 +595,30 @@ export function PaymentModal({
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
                 <div className="absolute inset-0 border border-gray-200 dark:border-white/[0.06] rounded-xl pointer-events-none" />
                 <div className="relative p-4 space-y-3">
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[10px] text-gray-400 dark:text-[hsl(0_0%_40%)] uppercase tracking-widest font-medium mb-1">Product</p>
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate">{displayName}</p>
+                  {isCartCheckout ? (
+                    <>
+                      <p className="text-[10px] text-gray-400 dark:text-[hsl(0_0%_40%)] uppercase tracking-widest font-medium mb-1">Order Summary</p>
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {cartItems.map(item => (
+                          <div key={item.productId} className="flex justify-between items-center text-sm">
+                            <span className="text-gray-900 dark:text-white truncate flex-1 mr-2">{item.productName}</span>
+                            <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">x{item.quantity}</span>
+                            <span className="text-gray-900 dark:text-white font-medium ml-3 flex-shrink-0 tabular-nums">${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-gray-400 dark:text-[hsl(0_0%_40%)] uppercase tracking-widest font-medium mb-1">Product</p>
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate">{displayName}</p>
+                      </div>
+                      <div className="flex-shrink-0 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
+                        <span className="text-xs font-bold text-primary tabular-nums">x{displayQuantity}</span>
+                      </div>
                     </div>
-                    <div className="flex-shrink-0 px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
-                      <span className="text-xs font-bold text-primary tabular-nums">x{displayQuantity}</span>
-                    </div>
-                  </div>
+                  )}
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-white/[0.06] to-transparent" />
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500 dark:text-[hsl(0_0%_45%)]">Total Amount</span>

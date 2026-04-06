@@ -9,8 +9,10 @@ import {
 import { CloseWarningDialog } from "@/components/close-warning-dialog";
 import { Button } from "@/components/ui/button";
 import { CountryFlags } from "@/components/country-flag";
-import { Package, Minus, Plus, ShoppingCart, X, Sparkles, Check } from "lucide-react";
+import { Package, Minus, Plus, ShoppingCart, X, Sparkles, Check, ShoppingBag } from "lucide-react";
 import { renderBBCode } from "@/lib/bbcode";
+import { useCart } from "@/lib/cart";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductDetailModalProps {
   product: ProductWithVariants | null;
@@ -28,6 +30,8 @@ export function ProductDetailModal({
   const [quantity, setQuantity] = useState(1);
   const [showCloseWarning, setShowCloseWarning] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const { addItem } = useCart();
+  const { toast } = useToast();
 
   const hasVariants = product?.variants && product.variants.length > 0;
   const allOptions = useMemo(() => {
@@ -279,16 +283,35 @@ export function ProductDetailModal({
                 </div>
               </div>
 
-              <Button
-                size="lg"
-                onClick={handleProceed}
-                disabled={!inStock}
-                className="w-full gap-2.5 bg-primary text-white font-bold uppercase tracking-wider text-sm"
-                data-testid="button-proceed-to-payment"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                {inStock ? "Buy Now" : "Out of Stock"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    if (activeProduct) {
+                      addItem(activeProduct, quantity);
+                      toast({ title: "Added to cart", description: `${activeProduct.name} x${quantity} added` });
+                      onOpenChange(false);
+                    }
+                  }}
+                  disabled={!inStock}
+                  className="flex-1 gap-2 bg-white dark:bg-white/[0.06] text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/[0.08] font-bold uppercase tracking-wider text-sm"
+                  variant="outline"
+                  data-testid="button-add-to-cart"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Add to Cart
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={handleProceed}
+                  disabled={!inStock}
+                  className="flex-1 gap-2 bg-primary text-white font-bold uppercase tracking-wider text-sm"
+                  data-testid="button-proceed-to-payment"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {inStock ? "Buy Now" : "Out of Stock"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

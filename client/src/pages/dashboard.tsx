@@ -15,7 +15,7 @@ import { User, Package, ShoppingBag, LogOut, ArrowLeft, Search, Filter, Eye, Eye
 import { useOrderUpdates } from "@/hooks/use-order-updates";
 import { useToast } from "@/hooks/use-toast";
 import { PaymentModal } from "@/components/payment-modal";
-import type { Order, TrackingHistory } from "@shared/schema";
+import type { Order, OrderItem, TrackingHistory } from "@shared/schema";
 
 export default function Dashboard() {
   const { user, token, logout, isAdmin, sessionInvalidated, isLoading: isAuthLoading } = useAuth();
@@ -31,7 +31,20 @@ export default function Dashboard() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const { data: expandedItems } = useQuery<OrderItem[]>({
+    queryKey: ["/api/orders", expandedOrderId, "items"],
+    queryFn: async () => {
+      if (!expandedOrderId || !token) return [];
+      const res = await fetch(`/api/orders/${expandedOrderId}/items`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.json();
+    },
+    enabled: !!expandedOrderId && !!token,
+  });
 
   // Handle session invalidation
   useEffect(() => {
@@ -195,28 +208,48 @@ export default function Dashboard() {
     if (checkableStatuses.includes(order.status) && !order.sentStock) {
       setCheckingStock(order.id);
       try {
-        const res = await fetch(`/api/products/${order.productId}`);
-        if (!res.ok) {
-          toast({
-            title: "Product Unavailable",
-            description: "This product no longer exists. Payment is not available.",
-            variant: "destructive",
+        const isMultiItem = order.productName?.includes(" items");
+        if (isMultiItem && token) {
+          const itemsRes = await fetch(`/api/orders/${order.orderId}/items`, {
+            headers: { Authorization: `Bearer ${token}` },
           });
-          setCheckingStock(null);
-          return;
-        }
-        const product = await res.json();
-        const availableStock = product.stock ?? 0;
-        if (availableStock < order.quantity) {
-          toast({
-            title: "Out of Stock",
-            description: availableStock === 0
-              ? "This product is currently out of stock. Payment is not available."
-              : `Only ${availableStock} item(s) in stock, but your order requires ${order.quantity}.`,
-            variant: "destructive",
-          });
-          setCheckingStock(null);
-          return;
+          if (itemsRes.ok) {
+            const orderItemsList: OrderItem[] = await itemsRes.json();
+            for (const item of orderItemsList) {
+              const pRes = await fetch(`/api/products/${item.productId}`);
+              if (!pRes.ok) {
+                toast({ title: "Product Unavailable", description: `"${item.productName}" no longer exists.`, variant: "destructive" });
+                setCheckingStock(null);
+                return;
+              }
+              const prod = await pRes.json();
+              if ((prod.stock ?? 0) < item.quantity) {
+                toast({ title: "Out of Stock", description: `Not enough stock for "${item.productName}".`, variant: "destructive" });
+                setCheckingStock(null);
+                return;
+              }
+            }
+          }
+        } else {
+          const res = await fetch(`/api/products/${order.productId}`);
+          if (!res.ok) {
+            toast({ title: "Product Unavailable", description: "This product no longer exists. Payment is not available.", variant: "destructive" });
+            setCheckingStock(null);
+            return;
+          }
+          const product = await res.json();
+          const availableStock = product.stock ?? 0;
+          if (availableStock < order.quantity) {
+            toast({
+              title: "Out of Stock",
+              description: availableStock === 0
+                ? "This product is currently out of stock. Payment is not available."
+                : `Only ${availableStock} item(s) in stock, but your order requires ${order.quantity}.`,
+              variant: "destructive",
+            });
+            setCheckingStock(null);
+            return;
+          }
         }
       } catch {
       }
@@ -407,6 +440,28 @@ export default function Dashboard() {
                           </div>
                           <div>
                             <p className="font-medium">{order.productName}</p>
+                            {order.productName?.includes(" items") && (
+                              <button
+                                className="text-xs text-primary hover:underline mt-0.5"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedOrderId(expandedOrderId === order.orderId ? null : order.orderId);
+                                }}
+                                data-testid={`button-view-items-${order.id}`}
+                              >
+                                {expandedOrderId === order.orderId ? "Hide items" : "View items"}
+                              </button>
+                            )}
+                            {expandedOrderId === order.orderId && expandedItems && (
+                              <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                                {expandedItems.map((item) => (
+                                  <div key={item.id} className="flex justify-between gap-2">
+                                    <span>{item.productName}</span>
+                                    <span>x{item.quantity} @ ${Number(item.price).toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             <p className="text-sm text-muted-foreground">
                               Order: {order.orderId}
                             </p>

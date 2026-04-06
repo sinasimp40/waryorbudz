@@ -7,11 +7,13 @@ import { SupportBanner } from "@/components/support-banner";
 import { FeaturesStrip } from "@/components/features-strip";
 import { ProductGrid } from "@/components/product-grid";
 import { ProductDetailModal } from "@/components/product-detail-modal";
-import { PaymentModal } from "@/components/payment-modal";
+import { PaymentModal, type CartCheckoutItem } from "@/components/payment-modal";
+import { CartDrawer } from "@/components/cart-drawer";
 import { ParticleBackground } from "@/components/particle-background";
 import { UnifiedSearchBar } from "@/components/unified-search-bar";
 import { SocialWidget } from "@/components/social-widget";
 import { useProductUpdates } from "@/hooks/use-product-updates";
+import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -32,8 +34,9 @@ export default function Home() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
+  const [cartCheckoutItems, setCartCheckoutItems] = useState<CartCheckoutItem[]>([]);
+  const { items: cartItems, clearCart } = useCart();
 
-  // Enable real-time product updates via WebSocket
   useProductUpdates();
 
   const { data: products = [], isLoading: productsLoading } = useQuery<ProductWithVariants[]>({
@@ -97,14 +100,25 @@ export default function Home() {
   const handleProceedToPayment = (product: Product, quantity: number) => {
     setActiveVariant(product);
     setPurchaseQuantity(quantity);
+    setCartCheckoutItems([]);
     setDetailModalOpen(false);
+    setPaymentModalOpen(true);
+  };
+
+  const handleCartCheckout = () => {
+    setSelectedProduct(null);
+    setActiveVariant(null);
+    setCartCheckoutItems(cartItems.map(i => ({
+      productId: i.productId,
+      productName: i.productName,
+      price: i.price,
+      quantity: i.quantity,
+    })));
     setPaymentModalOpen(true);
   };
 
   const handlePaymentComplete = (paymentId: string) => {
     console.log("Payment completed:", paymentId);
-    // Don't close modal - let the success screen show first
-    // Modal will be closed when user clicks "Done" button
   };
 
   return (
@@ -187,7 +201,10 @@ export default function Home() {
         open={paymentModalOpen}
         onOpenChange={setPaymentModalOpen}
         onPaymentComplete={handlePaymentComplete}
+        cartItems={cartCheckoutItems.length > 0 ? cartCheckoutItems : undefined}
+        onCartClear={clearCart}
       />
+      <CartDrawer onCheckout={handleCartCheckout} />
       <SocialWidget />
     </div>
   );

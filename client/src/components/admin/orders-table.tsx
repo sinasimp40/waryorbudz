@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Order, TrackingHistory } from "@shared/schema";
+import type { Order, OrderItem, TrackingHistory } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,6 +81,17 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   const [verifyingOrder, setVerifyingOrder] = useState<string | null>(null);
   const [editingTrackingOrder, setEditingTrackingOrder] = useState<string | null>(null);
   const [historyOrderId, setHistoryOrderId] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+
+  const { data: expandedItems } = useQuery<OrderItem[]>({
+    queryKey: ["/api/orders", expandedOrderId, "items"],
+    queryFn: async () => {
+      if (!expandedOrderId) return [];
+      const res = await apiRequest("GET", `/api/orders/${expandedOrderId}/items`);
+      return res.json();
+    },
+    enabled: !!expandedOrderId,
+  });
 
   const { data: trackingHistoryData } = useQuery<TrackingHistory[]>({
     queryKey: ["/api/admin/orders", historyOrderId, "tracking-history"],
@@ -327,12 +338,39 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium text-foreground text-sm truncate max-w-[150px] block">
-                        {order.productName || "Unknown Product"}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Qty: {order.quantity}
-                      </span>
+                      {order.productName?.includes(" items") ? (
+                        <button
+                          className="text-left group"
+                          onClick={() => setExpandedOrderId(expandedOrderId === order.orderId ? null : order.orderId)}
+                          data-testid={`button-expand-order-${order.id}`}
+                        >
+                          <span className="font-medium text-primary text-sm truncate max-w-[150px] block group-hover:underline">
+                            {order.productName}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Click to {expandedOrderId === order.orderId ? "collapse" : "view items"}
+                          </span>
+                        </button>
+                      ) : (
+                        <>
+                          <span className="font-medium text-foreground text-sm truncate max-w-[150px] block">
+                            {order.productName || "Unknown Product"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Qty: {order.quantity}
+                          </span>
+                        </>
+                      )}
+                      {expandedOrderId === order.orderId && expandedItems && (
+                        <div className="mt-2 space-y-1 border-t border-border pt-2">
+                          {expandedItems.map((item) => (
+                            <div key={item.id} className="flex justify-between text-xs">
+                              <span className="text-foreground">{item.productName}</span>
+                              <span className="text-muted-foreground">x{item.quantity} @ ${Number(item.price).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <span className="text-sm text-muted-foreground truncate max-w-[150px] block">

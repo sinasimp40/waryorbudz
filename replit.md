@@ -19,12 +19,22 @@ Preferred communication style: Simple, everyday language.
 - **Template Variables**: {{orderId}}, {{productName}}, {{quantity}}, {{payAmount}}, {{payCurrency}}, {{email}}, {{shopName}}
 - **Design**: Physical shipping messaging — "Your order is being prepared for shipment"
 
-### Checkout Flow
+### Cart & Checkout Flow
+- **Multi-Product Cart**: Users can add multiple products to cart; cart persisted in localStorage (`warriorbudz_cart`)
+- **Cart Context**: `client/src/lib/cart.tsx` — CartContext with add, remove, update quantity, clear
+- **Cart Drawer**: `client/src/components/cart-drawer.tsx` — slide-out panel with item list, quantity controls, checkout button
+- **Cart Icon**: Header shows cart icon with item count badge
+- **Order Items Table**: `order_items` — id, orderId, productId, productName, quantity, price; stores per-item detail for multi-item orders
+- **Backward Compatibility**: `orders.productId` = first item's productId, `orders.productName` = "X items" for multi-item orders
+- **Server-Side Price Verification**: Checkout routes recompute totals from DB product prices; client-supplied amounts are ignored
+- **Auth on Order Items**: `/api/orders/:orderId/items` requires owner or admin auth
 - **Shipping Address**: Full shipping address (name, address, city, province, postal code, country) collected at checkout
 - **Server Validation**: Shipping fields validated server-side before payment creation
 - **Orders Table**: Includes shippingName, shippingAddress, shippingCity, shippingProvince, shippingPostalCode, shippingCountry fields
 - **Success Modal**: Shows "Your Order is on the Way!" with shipping address confirmation
 - **Stock Management**: Stock is a manual number; decremented by order quantity on payment completion (quantity-aware)
+- **Admin Orders**: Multi-item orders show expandable item list in admin orders table
+- **Dashboard Orders**: Multi-item orders show "View items" link to expand per-item details
 
 ## System Architecture
 
