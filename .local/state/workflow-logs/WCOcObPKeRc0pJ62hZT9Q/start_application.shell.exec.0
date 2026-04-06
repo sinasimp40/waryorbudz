@@ -1,0 +1,88 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+Loaded SMTP settings from database
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+4:04:22 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+4:04:29 AM [express] GET /api/products 304 in 4ms
+4:04:29 AM [express] GET /api/settings/theme 304 in 5ms
+4:04:29 AM [express] GET /api/settings/social 304 in 8ms
+4:04:29 AM [express] GET /api/settings/shop 304 in 15ms
+4:04:29 AM [express] GET /api/settings/recaptcha 304 in 27ms
+4:04:40 AM [express] GET /api/settings/recaptcha 304 in 2ms
+4:04:40 AM [express] GET /api/settings/shop 304 in 3ms
+4:04:40 AM [express] GET /api/products 304 in 5ms
+4:04:40 AM [express] GET /api/settings/social 304 in 8ms
+4:04:40 AM [express] GET /api/settings/theme 304 in 7ms
+4:05:16 AM [express] GET /api/products 200 in 10ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:05:52 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/particle-background.tsx, /src/index.css?v=R1uh4-Ltk14PfO69dhGyF[22m
+4:05:57 AM [express] GET /api/settings/recaptcha 304 in 3ms
+4:05:57 AM [express] GET /api/settings/shop 304 in 4ms
+4:05:57 AM [express] GET /api/products 304 in 3ms
+4:05:57 AM [express] GET /api/settings/social 304 in 6ms
+4:05:57 AM [express] GET /api/settings/theme 304 in 5ms
+4:07:31 AM [express] GET /api/settings/recaptcha 304 in 2ms
+4:07:31 AM [express] GET /api/settings/shop 304 in 5ms
+4:07:31 AM [express] GET /api/settings/social 304 in 4ms
+4:07:31 AM [express] GET /api/products 304 in 3ms
+4:07:31 AM [express] GET /api/settings/theme 304 in 2ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m4:08:57 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/particle-background.tsx, /src/index.css?v=R1uh4-Ltk14PfO69dhGyF[22m [33m(x2)[39m
+4:22:33 AM [express] GET /api/settings/recaptcha 304 in 2ms
+4:22:33 AM [express] GET /api/settings/shop 304 in 4ms
+4:22:33 AM [express] GET /api/settings/theme 304 in 3ms
+4:22:33 AM [express] GET /api/products 304 in 3ms
+4:22:33 AM [express] GET /api/settings/social 304 in 4ms

@@ -1,0 +1,138 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+3:44:01 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+3:44:05 AM [express] GET /api/settings/recaptcha 304 in 5ms
+3:44:05 AM [express] GET /api/products 304 in 5ms
+3:44:05 AM [express] GET /api/settings/shop 304 in 11ms
+3:44:05 AM [express] GET /api/settings/social 304 in 8ms
+3:44:05 AM [express] GET /api/settings/theme 304 in 16ms
+3:44:13 AM [express] GET /api/settings/theme 304 in 4ms
+3:44:13 AM [express] GET /api/settings/recaptcha 304 in 4ms
+3:44:13 AM [express] GET /api/products 304 in 1ms
+3:44:13 AM [express] GET /api/settings/social 304 in 6ms
+3:44:13 AM [express] GET /api/settings/shop 304 in 5ms
+3:44:14 AM [express] GET /api/settings/recaptcha 304 in 2ms
+3:44:14 AM [express] GET /api/settings/shop 304 in 4ms
+3:44:14 AM [express] GET /api/products 304 in 4ms
+3:44:14 AM [express] GET /api/settings/theme 304 in 4ms
+3:44:14 AM [express] GET /api/settings/social 304 in 7ms
+3:44:48 AM [express] GET /api/settings/recaptcha 304 in 3ms
+3:44:48 AM [express] GET /api/settings/shop 304 in 10ms
+3:44:48 AM [express] GET /api/products 304 in 5ms
+3:44:48 AM [express] GET /api/settings/social 304 in 14ms
+3:44:48 AM [express] GET /api/settings/theme 304 in 16ms
+3:44:56 AM [express] GET /api/settings/shop 200 in 4ms
+3:45:12 AM [express] GET /api/settings/recaptcha 304 in 2ms
+3:45:12 AM [express] GET /api/settings/shop 304 in 5ms
+3:45:12 AM [express] GET /api/products 304 in 2ms
+3:45:12 AM [express] GET /api/settings/theme 304 in 3ms
+3:45:12 AM [express] GET /api/settings/social 304 in 7ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:46:59 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/lib/auth.tsx, /src/index.css?v=TgzcHEmf0LPAzBr-BeI-m[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:47:00 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.tsx?v=TgzcHEmf0LPAzBr-BeI-m, /src/index.css?v=TgzcHEmf0LPAzBr-BeI-m, /src/pages/reviews.tsx, /src/pages/dashboard.tsx, /src/pages/admin.tsx, /src/components/announcement-bar.tsx, /src/components/social-widget.tsx, /src/components/payment-modal.tsx, /src/pages/status.tsx, /src/components/header.tsx, /src/components/admin/forgot-password-template-editor.tsx, /src/components/admin/social-links-settings.tsx, /src/components/admin/payment-settings.tsx, /src/components/admin/recaptcha-settings.tsx, /src/components/admin/smtp-settings.tsx, /src/components/admin/shop-settings.tsx, /src/components/admin/email-template-editor.tsx, /src/components/admin/database-settings.tsx, /src/components/admin/product-table.tsx, /src/components/admin/theme-settings.tsx, /src/components/admin/orders-table.tsx, /src/components/admin/users-table.tsx, /src/components/admin/reviews-settings.tsx, /src/components/admin/update-settings.tsx[22m
+reCAPTCHA secret not configured, skipping verification
+3:47:02 AM [express] POST /api/auth/register 201 in 17ms
+3:47:02 AM [express] GET /api/auth/session 200 in 2ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:47:18 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/admin/database-settings.tsx, /src/index.css?v=TgzcHEmf0LPAzBr-BeI-m[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m3:47:19 AM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/admin/database-settings.tsx, /src/index.css?v=TgzcHEmf0LPAzBr-BeI-m[22m [33m(x2)[39m

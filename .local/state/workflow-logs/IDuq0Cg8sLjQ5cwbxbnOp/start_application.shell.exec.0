@@ -1,0 +1,43 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+Loaded SMTP settings from database
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+9:17:24 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+9:17:40 AM [express] GET /api/settings/recaptcha 200 in 16ms
+9:17:40 AM [express] GET /api/products 200 in 16ms
+9:17:40 AM [express] GET /api/settings/social 200 in 19ms
+9:17:40 AM [express] GET /api/settings/theme 200 in 18ms
+9:17:40 AM [express] GET /api/settings/shop 200 in 23ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m9:21:45 AM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mindex.html[22m
