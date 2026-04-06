@@ -25,8 +25,12 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    hmr: {
-      clientPort: 443,
-    },
+    hmr: process.env.REPLIT_DEV_DOMAIN
+      ? {
+          protocol: "wss",
+          host: process.env.REPLIT_DEV_DOMAIN,
+          clientPort: 443,
+        }
+      : true,
   },
 });

@@ -66,7 +66,7 @@ export const globalLimiter = rateLimit({
   max: 1000,
   message: { error: "Too many requests, please try again later." },
   skip: (req: Request) => {
-    return req.path.startsWith("/assets") || req.path.startsWith("/@") || req.path.endsWith(".js") || req.path.endsWith(".css");
+    return req.path.startsWith("/assets") || req.path.startsWith("/@") || req.path.endsWith(".js") || req.path.endsWith(".css") || req.path === "/" || req.path.startsWith("/src");
   },
 });
 

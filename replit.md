@@ -149,5 +149,13 @@ Preferred communication style: Simple, everyday language.
 - **React Icons**: Additional icons (crypto currency symbols)
 
 ### Development Tools
-- **Vite**: Development server with HMR and production bundling
+- **Vite**: Development server (HMR disabled in middleware mode for Replit compatibility) with production bundling
 - **Replit Plugins**: Runtime error overlay, cartographer, and dev banner for Replit environment
+
+## Replit Environment Notes
+
+- **Dev script**: Uses `npx tsx` instead of bare `tsx` to resolve local node_modules binary
+- **Vite HMR**: Disabled (`hmr: false`) in Vite middleware mode to prevent WebSocket conflicts with the app's `ws` WebSocket servers
+- **Port**: App binds on `0.0.0.0:5000`, exposed externally via Replit proxy on port 80
+- **Rate Limiting**: Global rate limiter skips `/`, `/src/*`, `/@*`, `.js`, `.css`, `/assets` paths to prevent blocking page loads
+- **WebSockets**: App uses path-based WebSocket servers (`/ws/products`, `/ws/theme`, etc.) via the `ws` library attached to the Express HTTP server

@@ -9,13 +9,9 @@ import { injectThemeIntoHtml } from "./themeInjector";
 
 const viteLogger = createLogger();
 
-export async function setupVite(server: Server, app: Express) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true as const,
-  };
+let _viteInstance: Awaited<ReturnType<typeof createViteServer>> | null = null;
 
+export async function createVite(server: Server) {
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -26,9 +22,20 @@ export async function setupVite(server: Server, app: Express) {
         process.exit(1);
       },
     },
-    server: serverOptions,
+    server: {
+      ...((viteConfig.server as object) || {}),
+      middlewareMode: true,
+      hmr: false,
+      allowedHosts: true as const,
+    },
     appType: "custom",
   });
+  _viteInstance = vite;
+  return vite;
+}
+
+export async function setupVite(server: Server, app: Express) {
+  const vite = _viteInstance || await createVite(server);
 
   app.use(vite.middlewares);
 
