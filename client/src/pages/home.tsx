@@ -4,7 +4,6 @@ import type { Product, ProductWithVariants } from "@shared/schema";
 import { Header } from "@/components/header";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { SupportBanner } from "@/components/support-banner";
-import { FeaturesStrip } from "@/components/features-strip";
 import { ProductGrid } from "@/components/product-grid";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import { PaymentModal, type CartCheckoutItem } from "@/components/payment-modal";
@@ -129,7 +128,6 @@ export default function Home() {
         <main className="px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-6">
         <AnnouncementBar />
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <FeaturesStrip />
         <SupportBanner />
 
         <div className="py-4 sm:py-6">

@@ -1338,7 +1338,7 @@ export async function registerRoutes(
       }
       const authHeader = req.headers.authorization;
       const isAdminSession = authHeader?.startsWith("Bearer ")
-        ? (() => { const s = sessions.get(authHeader.substring(7)); return s && s.expiresAt > new Date() && s.isAdmin; })()
+        ? (() => { const s = sessions.get(authHeader.substring(7)); return s && s.expiresAt > new Date() && s.role === "admin"; })()
         : false;
       const userSession = authHeader?.startsWith("Bearer ")
         ? sessions.get(authHeader.substring(7))
@@ -2221,11 +2221,13 @@ export async function registerRoutes(
 
       await storage.updateOrderByOrderId(orderId, updates);
 
+      const adminToken = req.headers.authorization?.substring(7) || "";
+      const adminSession = sessions.get(adminToken);
       await storage.createTrackingHistory({
         orderId,
         trackingNumber: trimmedTracking,
         previousTrackingNumber: null,
-        editedBy: (req.user as any)?.email || "admin",
+        editedBy: adminSession?.email || "admin",
         editedAt: new Date().toISOString(),
       });
 
@@ -2288,11 +2290,13 @@ export async function registerRoutes(
 
       await storage.updateOrderByOrderId(orderId, { trackingNumber: trimmedTracking });
 
+      const adminToken2 = req.headers.authorization?.substring(7) || "";
+      const adminSession2 = sessions.get(adminToken2);
       await storage.createTrackingHistory({
         orderId,
         trackingNumber: trimmedTracking,
         previousTrackingNumber: previousTracking,
-        editedBy: (req.user as any)?.email || "admin",
+        editedBy: adminSession2?.email || "admin",
         editedAt: new Date().toISOString(),
       });
 

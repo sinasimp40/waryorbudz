@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 ### Cart & Checkout Flow
 - **Multi-Product Cart**: Users can add multiple products to cart; cart persisted in localStorage (`warriorbudz_cart`)
 - **Cart Context**: `client/src/lib/cart.tsx` — CartContext with add, remove, update quantity, clear
-- **Cart Drawer**: `client/src/components/cart-drawer.tsx` — slide-out panel with item list, quantity controls, checkout button
+- **Cart Drawer**: `client/src/components/cart-drawer.tsx` — slide-in side panel (desktop) / bottom sheet (mobile) with accessible dialog, focus trap, item list, quantity controls, checkout button
 - **Cart Icon**: Header shows cart icon with item count badge
 - **Order Items Table**: `order_items` — id, orderId, productId, productName, quantity, price; stores per-item detail for multi-item orders
 - **Backward Compatibility**: `orders.productId` = first item's productId, `orders.productName` = "X items" for multi-item orders

@@ -1,13 +1,14 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+// @ts-ignore - hpp has no type declarations
 import hpp from "hpp";
 
 const loginAttempts = new Map<string, { count: number; lastAttempt: number; blockedUntil: number }>();
 
 setInterval(() => {
   const now = Date.now();
-  for (const [key, data] of loginAttempts.entries()) {
+  for (const [key, data] of Array.from(loginAttempts.entries())) {
     if (now - data.lastAttempt > 15 * 60 * 1000) {
       loginAttempts.delete(key);
     }
