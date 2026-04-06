@@ -2335,7 +2335,7 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Complete shipping address is required" });
       }
 
-      // Construct IPN callback URL using REPLIT_DOMAINS
+      // Construct IPN callback URL from environment domain
       const domain = process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
       const ipnCallbackUrl = domain ? `https://${domain}/api/payments/ipn` : undefined;
 
