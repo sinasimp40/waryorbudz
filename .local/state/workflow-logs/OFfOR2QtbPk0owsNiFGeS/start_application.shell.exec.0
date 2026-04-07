@@ -1,0 +1,47 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development npx tsx server/index.ts
+
+[1G[0K[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+Loaded NOWPayments API key from database
+Loaded NOWPayments IPN secret from database
+Loaded SMTP settings from database
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+12:25:32 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+12:25:38 AM [express] GET /api/settings/theme 200 in 7ms
+12:25:39 AM [express] GET /api/settings/recaptcha 200 in 3ms
+12:25:39 AM [express] GET /api/products 200 in 7ms
+12:25:39 AM [express] GET /api/settings/shop 200 in 19ms
+12:25:39 AM [express] GET /api/settings/social 200 in 15ms
+12:25:39 AM [express] GET /api/settings/theme 304 in 22ms
+12:25:44 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:25:44 AM [express] GET /api/products 304 in 3ms
+12:25:44 AM [express] GET /api/settings/shop 304 in 6ms
+12:25:44 AM [express] GET /api/settings/theme 304 in 3ms
+12:25:44 AM [express] GET /api/settings/social 304 in 6ms
+12:25:45 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:25:45 AM [express] GET /api/products 304 in 4ms
+12:25:45 AM [express] GET /api/settings/shop 304 in 12ms
+12:25:45 AM [express] GET /api/settings/social 304 in 12ms
+12:25:45 AM [express] GET /api/settings/theme 304 in 9ms
+12:26:02 AM [express] GET /api/settings/recaptcha 304 in 4ms
+12:26:02 AM [express] GET /api/products 304 in 6ms
+12:26:02 AM [express] GET /api/settings/shop 304 in 14ms
+12:26:02 AM [express] GET /api/settings/social 304 in 13ms
+12:26:02 AM [express] GET /api/settings/theme 304 in 18ms
+12:26:24 AM [express] GET /api/settings/recaptcha 304 in 3ms
+12:26:24 AM [express] GET /api/products 304 in 3ms
+12:26:24 AM [express] GET /api/settings/shop 304 in 9ms
+12:26:24 AM [express] GET /api/settings/theme 304 in 5ms
+12:26:24 AM [express] GET /api/settings/social 304 in 7ms
+12:27:04 AM [express] GET /api/settings/recaptcha 304 in 1ms
+12:27:04 AM [express] GET /api/settings/shop 304 in 5ms
+12:27:04 AM [express] GET /api/settings/social 304 in 6ms
+12:27:04 AM [express] GET /api/products 304 in 2ms
+12:27:04 AM [express] GET /api/settings/theme 304 in 6ms

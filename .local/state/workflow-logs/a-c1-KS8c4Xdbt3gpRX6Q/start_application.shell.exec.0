@@ -1,0 +1,117 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development npx tsx server/index.ts
+
+[1G[0K[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+11:49:29 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+11:49:34 AM [express] GET /api/settings/recaptcha 200 in 5ms
+11:49:34 AM [express] GET /api/products 200 in 5ms
+11:49:34 AM [express] GET /api/settings/shop 200 in 14ms
+11:49:34 AM [express] GET /api/settings/social 200 in 13ms
+11:49:34 AM [express] GET /api/settings/theme 200 in 18ms
+11:49:37 AM [express] GET /api/settings/theme 304 in 4ms
+11:49:37 AM [express] GET /api/settings/social 304 in 5ms
+11:49:37 AM [express] GET /api/products 304 in 2ms
+11:49:37 AM [express] GET /api/settings/recaptcha 304 in 6ms
+11:49:37 AM [express] GET /api/settings/shop 304 in 8ms
+reCAPTCHA secret not configured, skipping verification
+11:49:49 AM [express] POST /api/auth/login 401 in 12ms
+11:49:57 AM [express] GET /api/settings/shop 200 in 4ms
+11:50:01 AM [express] GET /api/settings/recaptcha 304 in 3ms
+11:50:01 AM [express] GET /api/products 304 in 5ms
+11:50:01 AM [express] GET /api/settings/shop 304 in 12ms
+11:50:01 AM [express] GET /api/settings/social 304 in 10ms
+11:50:01 AM [express] GET /api/settings/theme 304 in 17ms
+reCAPTCHA secret not configured, skipping verification
+11:50:17 AM [express] POST /api/auth/register 201 in 36ms
+11:50:17 AM [express] GET /api/auth/session 200 in 2ms
+11:50:56 AM [express] GET /api/settings/shop 200 in 11ms
+11:50:56 AM [express] GET /api/products 200 in 1ms
+11:51:00 AM [express] POST /api/auth/logout 200 in 1ms
+reCAPTCHA secret not configured, skipping verification
+11:51:12 AM [express] POST /api/auth/login 200 in 10ms
+11:51:12 AM [express] GET /api/auth/session 200 in 2ms
+11:51:13 AM [express] GET /api/settings/recaptcha 304 in 2ms
+11:51:13 AM [express] GET /api/orders 200 in 2ms
+11:51:13 AM [express] GET /api/products 200 in 1ms
+11:51:15 AM [express] GET /api/database/settings 200 in 3ms
+11:51:15 AM [express] POST /api/database/export 200 in 9ms
+11:51:17 AM [express] GET /api/orders 304 in 3ms
+=== Starting Database Import ===
+Import file version: 1.0.0
+Export timestamp: 2026-04-06T10:59:23.425Z
+Tables in import file: [
+  [32m'users'[39m,
+  [32m'products'[39m,
+  [32m'orders'[39m,
+  [32m'emailTemplates'[39m,
+  [32m'settings'[39m,
+  [32m'passwordResetTokens'[39m,
+  [32m'reviews'[39m
+]
+  - users: 1 rows
+  - products: 10 rows
+  - orders: 5 rows
+  - emailTemplates: 1 rows
+  - settings: 18 rows
+  - passwordResetTokens: 0 rows
+  - reviews: 0 rows
+Imported encryption_key and reloaded into cache
+Updated existing user: admin@admin.com
+=== Import summary for users: 1/1 rows imported ===
+Inserted new product: Pink Kush
+Inserted new product: Gummy Bears - 200mg THC
+Inserted new product: Chocolate Bar - 300mg THC
+Inserted new product: Golden Teachers - 3.5g
+Inserted new product: Live Resin Shatter - 1g
+Inserted new product: Blue Dream
+Inserted new product: OG Kush
+Inserted new product: Northern Lights
+Inserted new product: THC Wax Pen - Mango
+Inserted new product: Sour Diesel
+=== Import summary for products: 10/10 rows imported ===
+Inserted new order: ORDER-1774090846047-qz8oqiwx5
+Inserted new order: ORDER-1774091404488-rwlnzohyh
+Inserted new order: ORDER-1774091671393-f2kh1nee4
+Inserted new order: ORDER-1774266973149-vab3fstx2
+Inserted new order: ORDER-1774498242343-uq9szjs0y
+=== Import summary for orders: 5/5 rows imported ===
+Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"
+=== Import summary for emailTemplates: 0/1 rows imported ===
+Errors in emailTemplates: [
+  [32m'Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"'[39m
+]
+=== Import summary for settings: 18/18 rows imported ===
+=== Import summary for passwordResetTokens: 0/0 rows imported ===
+=== Import summary for reviews: 0/0 rows imported ===
+=== Database Import Complete ===
+Import details: {
+  users: [33m1[39m,
+  products: [33m10[39m,
+  orders: [33m5[39m,
+  emailTemplates: [33m0[39m,
+  settings: [33m18[39m,
+  passwordResetTokens: [33m0[39m,
+  reviews: [33m0[39m
+}
+Encryption key reloaded from database
+Reloaded SMTP settings after import
+Settings reloaded successfully after database import
+11:51:20 AM [express] POST /api/database/import 200 in 140ms
+11:51:20 AM [express] GET /api/orders 200 in 1ms
+11:51:20 AM [express] GET /api/settings/theme 200 in 2ms
+11:51:20 AM [express] GET /api/products 200 in 4ms
+11:51:20 AM [express] GET /api/database/settings 304 in 14ms
+11:51:20 AM [express] GET /api/orders 304 in 2ms
+11:51:20 AM [express] GET /api/settings/shop 200 in 17ms
+11:51:22 AM [express] POST /api/auth/logout 200 in 0ms
+11:51:23 AM [express] GET /api/products 200 in 1ms
+11:51:23 AM [express] GET /api/settings/social 304 in 5ms
+11:51:23 AM [express] GET /api/settings/recaptcha 304 in 3ms

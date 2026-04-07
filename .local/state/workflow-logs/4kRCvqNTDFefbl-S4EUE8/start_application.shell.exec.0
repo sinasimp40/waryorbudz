@@ -1,0 +1,384 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development npx tsx server/index.ts
+
+[1G[0K[1G[0K⠙[1G[0K[Security] All security middleware initialized
+[Startup] Initializing server...
+[Startup] Loading settings from database...
+Loaded SMTP settings from database
+[Startup] Initializing encryption...
+[Startup] Registering routes...
+Started automatic order status polling (every 30 seconds)
+12:15:45 AM [express] serving on port 5000
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+12:15:50 AM [express] GET /api/settings/theme 200 in 5ms
+12:15:51 AM [express] GET /api/settings/recaptcha 200 in 3ms
+12:15:51 AM [express] GET /api/products 200 in 7ms
+12:15:51 AM [express] GET /api/settings/shop 200 in 17ms
+12:15:51 AM [express] GET /api/settings/social 200 in 19ms
+12:15:51 AM [express] GET /api/settings/theme 304 in 24ms
+12:15:51 AM [express] GET /api/settings/recaptcha 304 in 3ms
+12:15:51 AM [express] GET /api/products 304 in 3ms
+12:15:51 AM [express] GET /api/settings/social 304 in 4ms
+12:15:51 AM [express] GET /api/settings/theme 304 in 3ms
+12:15:51 AM [express] GET /api/settings/shop 304 in 5ms
+reCAPTCHA secret not configured, skipping verification
+12:18:12 AM [express] POST /api/auth/login 200 in 14ms
+12:18:12 AM [express] GET /api/auth/session 200 in 8ms
+12:18:13 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:18:13 AM [express] GET /api/products 200 in 3ms
+12:18:13 AM [express] GET /api/orders 200 in 15ms
+12:18:15 AM [express] GET /api/admin/update/settings 200 in 4ms
+12:18:16 AM [express] GET /api/database/settings 200 in 4ms
+12:18:17 AM [express] GET /api/orders 304 in 2ms
+12:18:20 AM [express] GET /api/orders 304 in 2ms
+=== Starting Database Import ===
+Import file version: 1.0.0
+Export timestamp: 2026-04-07T00:17:59.456Z
+Tables in import file: [
+  [32m'users'[39m,
+  [32m'products'[39m,
+  [32m'orders'[39m,
+  [32m'emailTemplates'[39m,
+  [32m'settings'[39m,
+  [32m'passwordResetTokens'[39m,
+  [32m'reviews'[39m
+]
+  - users: 5 rows
+  - products: 34 rows
+  - orders: 12 rows
+  - emailTemplates: 1 rows
+  - settings: 20 rows
+  - passwordResetTokens: 0 rows
+  - reviews: 1 rows
+Imported encryption_key and reloaded into cache
+Inserted new user: admin@warriorbuds.ca
+Updated existing user: admin@admin.com
+Inserted new user: charlesmassaad@gmail.com
+Inserted new user: shobizdageneral@gmail.com
+Inserted new user: maharajkailash97@gmail.com
+=== Import summary for users: 5/5 rows imported ===
+Inserted new product: California OG
+Inserted new product: Sicario 1.1G Pens x10 pens
+Inserted new product: Sicario 1.1G Pens x25 pens
+Inserted new product: Sicario 1.1G Pens x50 pens
+Inserted new product: Sicario 1.1G Pens x100 pens
+Inserted new product: California OG
+Inserted new product: Sicario 1.1G Pens x250 pens
+Inserted new product: California OG
+Inserted new product: Sicario 1.1G Pens
+Inserted new product: California OG
+Inserted new product: California OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: California OG
+Inserted new product: California OG
+Inserted new product: California OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: Ace Killer OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Zombie OG
+Inserted new product: Apple Sorbet
+Inserted new product: Apple Sorbet
+Inserted new product: Apple Sorbet
+Inserted new product: Apple Sorbet
+=== Import summary for products: 34/34 rows imported ===
+Updated existing order: ORDER-1774090846047-qz8oqiwx5
+Updated existing order: ORDER-1774091404488-rwlnzohyh
+Updated existing order: ORDER-1774091671393-f2kh1nee4
+Updated existing order: ORDER-1774266973149-vab3fstx2
+Updated existing order: ORDER-1774498242343-uq9szjs0y
+Inserted new order: ORDER-1775474191794-keh1o5pop
+Inserted new order: ORDER-1775474246218-cwfiv0mop
+Inserted new order: ORDER-1775474348071-0f3uuguod
+Inserted new order: ORDER-1775474363078-0bfvmxq1e
+Inserted new order: ORDER-1775486939885-og9kerz3p
+Inserted new order: ORDER-1775504187883-ti2r7c9os
+Inserted new order: ORDER-1775508756273-i84blvmc7
+=== Import summary for orders: 12/12 rows imported ===
+Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"
+=== Import summary for emailTemplates: 0/1 rows imported ===
+Errors in emailTemplates: [
+  [32m'Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"'[39m
+]
+=== Import summary for settings: 20/20 rows imported ===
+=== Import summary for passwordResetTokens: 0/0 rows imported ===
+Inserted new review: 4c53a398-b82d-4ce0-b1ad-882ef5f06c38
+=== Import summary for reviews: 1/1 rows imported ===
+=== Database Import Complete ===
+Import details: {
+  users: [33m5[39m,
+  products: [33m34[39m,
+  orders: [33m12[39m,
+  emailTemplates: [33m0[39m,
+  settings: [33m20[39m,
+  passwordResetTokens: [33m0[39m,
+  reviews: [33m1[39m
+}
+Encryption key reloaded from database
+Reloaded NOWPayments API key after import
+Reloaded NOWPayments IPN secret after import
+Reloaded SMTP settings after import
+Settings reloaded successfully after database import
+12:18:21 AM [express] POST /api/database/import 200 in 337ms
+12:18:21 AM [express] GET /api/settings/shop 304 in 8ms
+12:18:21 AM [express] GET /api/products 200 in 15ms
+12:18:21 AM [express] GET /api/settings/theme 304 in 20ms
+12:18:21 AM [express] GET /api/orders 200 in 19ms
+12:18:21 AM [express] GET /api/database/settings 304 in 23ms
+12:18:23 AM [express] POST /api/auth/logout 200 in 1ms
+12:18:23 AM [express] GET /api/products 200 in 3ms
+12:18:23 AM [express] GET /api/settings/social 304 in 7ms
+12:18:23 AM [express] GET /api/settings/recaptcha 304 in 3ms
+12:18:41 AM [express] GET /api/settings/theme 200 in 2ms
+12:18:49 AM [express] GET /api/settings/recaptcha 200 in 3ms
+12:18:49 AM [express] GET /api/settings/theme 304 in 3ms
+12:18:49 AM [express] GET /api/products 200 in 3ms
+12:18:49 AM [express] GET /api/settings/shop 200 in 8ms
+12:18:49 AM [express] GET /api/settings/social 200 in 6ms
+12:19:01 AM [express] GET /api/settings/theme 304 in 4ms
+12:19:01 AM [express] GET /api/settings/shop 304 in 9ms
+12:19:01 AM [express] GET /api/products 304 in 4ms
+12:19:01 AM [express] GET /api/settings/social 304 in 9ms
+12:19:01 AM [express] GET /api/settings/recaptcha 304 in 17ms
+reCAPTCHA secret not configured, skipping verification
+12:19:12 AM [express] POST /api/auth/login 200 in 10ms
+12:19:12 AM [express] GET /api/auth/session 200 in 1ms
+12:19:13 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:19:13 AM [express] GET /api/products 200 in 2ms
+12:19:13 AM [express] GET /api/orders 200 in 2ms
+12:19:14 AM [express] GET /api/database/settings 200 in 4ms
+12:19:16 AM [express] GET /api/orders 304 in 2ms
+=== Starting Database Import ===
+Import file version: 1.0.0
+Export timestamp: 2026-04-07T00:17:59.456Z
+Tables in import file: [
+  [32m'users'[39m,
+  [32m'products'[39m,
+  [32m'orders'[39m,
+  [32m'emailTemplates'[39m,
+  [32m'settings'[39m,
+  [32m'passwordResetTokens'[39m,
+  [32m'reviews'[39m
+]
+  - users: 5 rows
+  - products: 34 rows
+  - orders: 12 rows
+  - emailTemplates: 1 rows
+  - settings: 20 rows
+  - passwordResetTokens: 0 rows
+  - reviews: 1 rows
+Imported encryption_key and reloaded into cache
+Updated existing user: admin@warriorbuds.ca
+Updated existing user: admin@admin.com
+Updated existing user: charlesmassaad@gmail.com
+Updated existing user: shobizdageneral@gmail.com
+Updated existing user: maharajkailash97@gmail.com
+=== Import summary for users: 5/5 rows imported ===
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens x10 pens
+Updated existing product: Sicario 1.1G Pens x25 pens
+Updated existing product: Sicario 1.1G Pens x50 pens
+Updated existing product: Sicario 1.1G Pens x100 pens
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens x250 pens
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+=== Import summary for products: 34/34 rows imported ===
+Updated existing order: ORDER-1774090846047-qz8oqiwx5
+Updated existing order: ORDER-1774091404488-rwlnzohyh
+Updated existing order: ORDER-1774091671393-f2kh1nee4
+Updated existing order: ORDER-1774266973149-vab3fstx2
+Updated existing order: ORDER-1774498242343-uq9szjs0y
+Updated existing order: ORDER-1775474191794-keh1o5pop
+Updated existing order: ORDER-1775474246218-cwfiv0mop
+Updated existing order: ORDER-1775474348071-0f3uuguod
+Updated existing order: ORDER-1775474363078-0bfvmxq1e
+Updated existing order: ORDER-1775486939885-og9kerz3p
+Updated existing order: ORDER-1775504187883-ti2r7c9os
+Updated existing order: ORDER-1775508756273-i84blvmc7
+=== Import summary for orders: 12/12 rows imported ===
+Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"
+=== Import summary for emailTemplates: 0/1 rows imported ===
+Errors in emailTemplates: [
+  [32m'Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"'[39m
+]
+=== Import summary for settings: 20/20 rows imported ===
+=== Import summary for passwordResetTokens: 0/0 rows imported ===
+Updated existing review: 4c53a398-b82d-4ce0-b1ad-882ef5f06c38
+=== Import summary for reviews: 1/1 rows imported ===
+=== Database Import Complete ===
+Import details: {
+  users: [33m5[39m,
+  products: [33m34[39m,
+  orders: [33m12[39m,
+  emailTemplates: [33m0[39m,
+  settings: [33m20[39m,
+  passwordResetTokens: [33m0[39m,
+  reviews: [33m1[39m
+}
+Encryption key reloaded from database
+Reloaded NOWPayments API key after import
+Reloaded NOWPayments IPN secret after import
+Reloaded SMTP settings after import
+Settings reloaded successfully after database import
+12:19:17 AM [express] POST /api/database/import 200 in 321ms
+12:19:18 AM [express] GET /api/settings/theme 304 in 6ms
+12:19:18 AM [express] GET /api/orders 304 in 2ms
+12:19:18 AM [express] GET /api/database/settings 304 in 19ms
+12:19:18 AM [express] GET /api/products 200 in 19ms
+12:19:18 AM [express] GET /api/settings/shop 304 in 24ms
+12:19:20 AM [express] POST /api/auth/logout 200 in 0ms
+12:19:20 AM [express] GET /api/products 200 in 2ms
+12:19:20 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:19:20 AM [express] GET /api/settings/social 304 in 3ms
+reCAPTCHA secret not configured, skipping verification
+12:19:39 AM [express] POST /api/auth/login 200 in 10ms
+12:19:40 AM [express] GET /api/auth/session 304 in 1ms
+12:19:41 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:19:42 AM [express] GET /api/admin/update/settings 200 in 2ms
+12:19:44 AM [express] GET /api/orders 304 in 2ms
+=== Starting Database Import ===
+Import file version: 1.0.0
+Export timestamp: 2026-04-07T00:19:26.039Z
+Tables in import file: [
+  [32m'users'[39m,
+  [32m'products'[39m,
+  [32m'orders'[39m,
+  [32m'emailTemplates'[39m,
+  [32m'settings'[39m,
+  [32m'passwordResetTokens'[39m,
+  [32m'reviews'[39m
+]
+  - users: 5 rows
+  - products: 34 rows
+  - orders: 12 rows
+  - emailTemplates: 1 rows
+  - settings: 20 rows
+  - passwordResetTokens: 0 rows
+  - reviews: 1 rows
+Imported encryption_key and reloaded into cache
+Updated existing user: admin@warriorbuds.ca
+Updated existing user: admin@admin.com
+Updated existing user: charlesmassaad@gmail.com
+Updated existing user: shobizdageneral@gmail.com
+Updated existing user: maharajkailash97@gmail.com
+=== Import summary for users: 5/5 rows imported ===
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens x10 pens
+Updated existing product: Sicario 1.1G Pens x25 pens
+Updated existing product: Sicario 1.1G Pens x50 pens
+Updated existing product: Sicario 1.1G Pens x100 pens
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens x250 pens
+Updated existing product: California OG
+Updated existing product: Sicario 1.1G Pens
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: California OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Ace Killer OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Zombie OG
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+Updated existing product: Apple Sorbet
+=== Import summary for products: 34/34 rows imported ===
+Updated existing order: ORDER-1774090846047-qz8oqiwx5
+Updated existing order: ORDER-1774091404488-rwlnzohyh
+Updated existing order: ORDER-1774091671393-f2kh1nee4
+Updated existing order: ORDER-1774266973149-vab3fstx2
+Updated existing order: ORDER-1774498242343-uq9szjs0y
+Updated existing order: ORDER-1775474191794-keh1o5pop
+Updated existing order: ORDER-1775474246218-cwfiv0mop
+Updated existing order: ORDER-1775474348071-0f3uuguod
+Updated existing order: ORDER-1775474363078-0bfvmxq1e
+Updated existing order: ORDER-1775486939885-og9kerz3p
+Updated existing order: ORDER-1775504187883-ti2r7c9os
+Updated existing order: ORDER-1775508756273-i84blvmc7
+=== Import summary for orders: 12/12 rows imported ===
+Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"
+=== Import summary for emailTemplates: 0/1 rows imported ===
+Errors in emailTemplates: [
+  [32m'Error in emailTemplates row 0: duplicate key value violates unique constraint "email_templates_name_unique"'[39m
+]
+=== Import summary for settings: 20/20 rows imported ===
+=== Import summary for passwordResetTokens: 0/0 rows imported ===
+Updated existing review: 4c53a398-b82d-4ce0-b1ad-882ef5f06c38
+=== Import summary for reviews: 1/1 rows imported ===
+=== Database Import Complete ===
+Import details: {
+  users: [33m5[39m,
+  products: [33m34[39m,
+  orders: [33m12[39m,
+  emailTemplates: [33m0[39m,
+  settings: [33m20[39m,
+  passwordResetTokens: [33m0[39m,
+  reviews: [33m1[39m
+}
+Encryption key reloaded from database
+Reloaded NOWPayments API key after import
+Reloaded NOWPayments IPN secret after import
+Reloaded SMTP settings after import
+Settings reloaded successfully after database import
+12:19:46 AM [express] POST /api/database/import 200 in 322ms
+12:19:46 AM [express] GET /api/settings/theme 304 in 3ms
+12:19:46 AM [express] GET /api/orders 304 in 3ms
+12:19:46 AM [express] GET /api/settings/shop 304 in 3ms
+12:19:46 AM [express] GET /api/database/settings 304 in 15ms
+12:19:46 AM [express] GET /api/products 200 in 14ms
+12:19:48 AM [express] POST /api/auth/logout 200 in 0ms
+12:19:48 AM [express] GET /api/settings/recaptcha 304 in 2ms
+12:19:48 AM [express] GET /api/settings/social 304 in 5ms
+12:19:48 AM [express] GET /api/products 200 in 4ms
