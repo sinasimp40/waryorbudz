@@ -578,7 +578,7 @@ export function PaymentModal({
   return (
     <>
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-black border border-gray-200 dark:border-primary/20 p-0 shadow-lg shadow-primary/10">
+      <DialogContent className="product-detail-dialog w-full sm:w-[95vw] sm:max-w-lg max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto bg-white dark:bg-black border-0 sm:border sm:border-gray-200 dark:sm:border-primary/20 p-0 shadow-lg shadow-primary/10 rounded-none sm:rounded-lg">
         {step === "form" && (
           <>
             <div className="relative overflow-hidden p-5 sm:p-6 border-b border-gray-100 dark:border-white/[0.06]">

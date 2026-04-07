@@ -540,3 +540,17 @@ body > div[style*="position: fixed"][style*="z-index"] {
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.4);
 }
+
+@media (max-width: 639px) {
+  .product-detail-dialog {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}

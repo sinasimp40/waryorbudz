@@ -108,7 +108,7 @@ export function ProductDetailModal({
   return (
     <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto p-0 bg-white dark:bg-[hsl(0_0%_4%)] border border-gray-200 dark:border-[hsl(0_0%_15%)] gap-0">
+      <DialogContent className="product-detail-dialog w-full sm:w-[95vw] sm:max-w-md max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto p-0 bg-white dark:bg-[hsl(0_0%_4%)] border-0 sm:border sm:border-gray-200 dark:sm:border-[hsl(0_0%_15%)] gap-0 rounded-none sm:rounded-lg">
         <DialogHeader className="sr-only">
           <DialogTitle>{product.name}</DialogTitle>
         </DialogHeader>
