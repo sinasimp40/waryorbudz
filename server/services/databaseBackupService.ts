@@ -1,14 +1,16 @@
 import { db, pool } from "../db";
-import { users, products, orders, emailTemplates, settings, passwordResetTokens, reviews } from "@shared/schema";
+import { users, products, orders, emailTemplates, settings, passwordResetTokens, reviews, orderItems, trackingHistory } from "@shared/schema";
 import type { BackupProgress, DatabaseExport } from "@shared/schema";
 import { WebSocket } from "ws";
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 const TABLES = [
   { name: 'users', table: users },
   { name: 'products', table: products },
   { name: 'orders', table: orders },
+  { name: 'orderItems', table: orderItems },
+  { name: 'trackingHistory', table: trackingHistory },
   { name: 'emailTemplates', table: emailTemplates },
   { name: 'settings', table: settings },
   { name: 'passwordResetTokens', table: passwordResetTokens },
@@ -323,6 +325,33 @@ export async function importDatabase(
     }
   }
 
+  emitProgress(2, 'Clearing existing data before import...');
+
+  const deleteOrder = [
+    'orderItems', 'trackingHistory', 'passwordResetTokens',
+    'reviews', 'emailTemplates', 'orders', 'products', 'users', 'settings',
+  ];
+  for (const tableName of deleteOrder) {
+    const tableConfig = TABLES.find(t => t.name === tableName);
+    if (tableConfig) {
+      try {
+        if (tableName === 'settings') {
+          const encKeyRow = importData.tables.settings?.data?.find((s: any) => s.key === 'encryption_key');
+          if (encKeyRow) {
+            await db.delete(settings).where(sql`${settings.key} != 'encryption_key'`);
+          } else {
+            await db.delete(settings);
+          }
+        } else {
+          await db.delete(tableConfig.table);
+        }
+        console.log(`Cleared table: ${tableName}`);
+      } catch (err: any) {
+        console.error(`Error clearing table ${tableName}:`, err?.message);
+      }
+    }
+  }
+
   let totalRowsToImport = 0;
   for (const tableName of Object.keys(importData.tables)) {
     totalRowsToImport += importData.tables[tableName].data.length;
@@ -470,8 +499,11 @@ export async function importDatabase(
             } else {
               await db.insert(emailTemplates).values(templateRow);
             }
+          } else if (tableName === 'orderItems') {
+            await db.insert(orderItems).values(row as any).onConflictDoNothing();
+          } else if (tableName === 'trackingHistory') {
+            await db.insert(trackingHistory).values(row as any).onConflictDoNothing();
           } else if (tableName === 'passwordResetTokens') {
-            // Password reset tokens - just insert, skip on conflict (ephemeral data)
             await db.insert(passwordResetTokens).values(row as any).onConflictDoNothing();
           } else if (tableName === 'reviews') {
             // Reviews - check by id and upsert
