@@ -2458,7 +2458,7 @@ export async function registerRoutes(
       const summaryName = items.length === 1 ? items[0].productName : `${items.length} items`;
       const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
 
-      const domain = process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
+      const domain = process.env.APP_DOMAIN || process.env.REPLIT_DOMAINS || process.env.REPLIT_DEV_DOMAIN;
       const ipnCallbackUrl = domain ? `https://${domain}/api/payments/ipn` : undefined;
 
       const payment = await nowPaymentsService.createPayment({

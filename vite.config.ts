@@ -1,12 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
     react(),
-    runtimeErrorOverlay(),
   ],
   resolve: {
     alias: {
@@ -25,10 +23,10 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    hmr: process.env.REPLIT_DEV_DOMAIN
+    hmr: process.env.DEV_DOMAIN || process.env.REPLIT_DEV_DOMAIN
       ? {
           protocol: "wss",
-          host: process.env.REPLIT_DEV_DOMAIN,
+          host: process.env.DEV_DOMAIN || process.env.REPLIT_DEV_DOMAIN,
           clientPort: 443,
         }
       : true,
