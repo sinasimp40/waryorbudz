@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Plus, Minus, Trash2, ShoppingBag, ArrowRight, X, Package } from "lucide-react";
+import { MIN_ORDER_AMOUNT, isBelowMinOrder, minOrderShortfall } from "@shared/order-rules";
 
 interface CartDrawerProps {
   onCheckout: () => void;
@@ -286,15 +287,24 @@ export function CartDrawer({ onCheckout }: CartDrawerProps) {
               </div>
             </div>
 
+            {isBelowMinOrder(totalPrice) && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" data-testid="text-cart-min-warning">
+                <span className="text-xs text-amber-700 dark:text-amber-400">
+                  Minimum order is ${MIN_ORDER_AMOUNT}. Add ${minOrderShortfall(totalPrice).toFixed(2)} more to checkout.
+                </span>
+              </div>
+            )}
+
             <Button
               onClick={() => {
                 handleClose();
                 setTimeout(onCheckout, 260);
               }}
+              disabled={isBelowMinOrder(totalPrice)}
               className="w-full h-12 sm:h-13 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base gap-2.5 rounded-xl shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.01] active:scale-[0.99]"
               data-testid="button-checkout"
             >
-              Proceed to Checkout
+              {isBelowMinOrder(totalPrice) ? `Min $${MIN_ORDER_AMOUNT} to Checkout` : "Proceed to Checkout"}
               <ArrowRight className="w-5 h-5" />
             </Button>
 

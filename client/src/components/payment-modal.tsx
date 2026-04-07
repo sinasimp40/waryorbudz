@@ -37,6 +37,7 @@ import {
 import { SiBitcoin, SiEthereum } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { MIN_ORDER_AMOUNT, isBelowMinOrder } from "@shared/order-rules";
 import QRCode from "react-qr-code";
 
 interface ExistingOrder {
@@ -412,6 +413,15 @@ export function PaymentModal({
       toast({
         title: "Shipping address required",
         description: "Please fill in all shipping address fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isBelowMinOrder(totalAmount)) {
+      toast({
+        title: "Below minimum order",
+        description: `Minimum order amount is $${MIN_ORDER_AMOUNT}. Your total is $${totalAmount.toFixed(2)}.`,
         variant: "destructive",
       });
       return;

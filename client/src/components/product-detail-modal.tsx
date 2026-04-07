@@ -13,6 +13,7 @@ import { Package, Minus, Plus, ShoppingCart, X, Sparkles, Check, ShoppingBag } f
 import { renderBBCode } from "@/lib/bbcode";
 import { useCart } from "@/lib/cart";
 import { useToast } from "@/hooks/use-toast";
+import { MIN_ORDER_AMOUNT, isBelowMinOrder, minOrderShortfall } from "@shared/order-rules";
 
 interface ProductDetailModalProps {
   product: ProductWithVariants | null;
@@ -85,6 +86,8 @@ export function ProductDetailModal({
   const maxQuantity = Math.min(activeProduct.stock, 100);
   const totalPrice = activeProduct.price * quantity;
   const inStock = activeProduct.stock > 0;
+  const belowMin = isBelowMinOrder(totalPrice);
+  const shortfall = minOrderShortfall(totalPrice);
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(maxQuantity, prev + delta)));
@@ -283,6 +286,14 @@ export function ProductDetailModal({
                 </div>
               </div>
 
+              {belowMin && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20" data-testid="text-min-order-warning">
+                  <span className="text-xs text-amber-700 dark:text-amber-400">
+                    Minimum order is ${MIN_ORDER_AMOUNT}. Add ${shortfall.toFixed(2)} more to buy directly, or add to cart and combine with other items.
+                  </span>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button
                   size="lg"
@@ -304,12 +315,12 @@ export function ProductDetailModal({
                 <Button
                   size="lg"
                   onClick={handleProceed}
-                  disabled={!inStock}
+                  disabled={!inStock || belowMin}
                   className="flex-1 gap-2 bg-primary text-white font-bold uppercase tracking-wider text-sm"
                   data-testid="button-proceed-to-payment"
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  {inStock ? "Buy Now" : "Out of Stock"}
+                  {!inStock ? "Out of Stock" : belowMin ? `Min $${MIN_ORDER_AMOUNT}` : "Buy Now"}
                 </Button>
               </div>
             </div>

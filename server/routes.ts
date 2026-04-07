@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertProductSchema, insertOrderSchema, insertEmailTemplateSchema, registerUserSchema, loginUserSchema, changePasswordSchema, adminUpdateUserSchema, type SafeUser, type BackupProgress, databaseBackupSettingsSchema } from "@shared/schema";
+import { MIN_ORDER_AMOUNT, isBelowMinOrder } from "@shared/order-rules";
 import { z } from "zod";
 import { nowPaymentsService } from "./nowpayments";
 import { emailService } from "./email";
@@ -1702,6 +1703,11 @@ export async function registerRoutes(
         return res.status(400).json({ error: "Insufficient stock" });
       }
 
+      const orderTotal = Number(product.price) * quantity;
+      if (isBelowMinOrder(orderTotal)) {
+        return res.status(400).json({ error: `Minimum order amount is $${MIN_ORDER_AMOUNT}. Your total is $${orderTotal.toFixed(2)}.` });
+      }
+
       // Capture client IP address (req.ip uses trust proxy setting)
       const ipAddress = req.ip || 
                         req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || 
@@ -2117,6 +2123,10 @@ export async function registerRoutes(
 
       const verifiedAmount = Math.round(serverTotal * 100) / 100;
 
+      if (isBelowMinOrder(verifiedAmount)) {
+        return res.status(400).json({ error: `Minimum order amount is $${MIN_ORDER_AMOUNT}. Your total is $${verifiedAmount.toFixed(2)}.` });
+      }
+
       const summaryName = items.length === 1 ? items[0].productName : `${items.length} items`;
       const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
 
@@ -2440,6 +2450,10 @@ export async function registerRoutes(
       }
 
       const verifiedAmount = Math.round(serverTotal * 100) / 100;
+
+      if (isBelowMinOrder(verifiedAmount)) {
+        return res.status(400).json({ error: `Minimum order amount is $${MIN_ORDER_AMOUNT}. Your total is $${verifiedAmount.toFixed(2)}.` });
+      }
 
       const summaryName = items.length === 1 ? items[0].productName : `${items.length} items`;
       const totalQty = items.reduce((sum: number, i: any) => sum + i.quantity, 0);
