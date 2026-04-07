@@ -121,7 +121,7 @@ export function ProductDetailModal({
           <X className="w-4 h-4" />
         </button>
 
-        <div className="relative w-full aspect-[16/10] overflow-hidden">
+        <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden flex-shrink-0">
           {hasImage ? (
             <img
               src={activeProduct.imageUrl!}
@@ -146,9 +146,9 @@ export function ProductDetailModal({
           </div>
         </div>
 
-        <div className="px-5 pb-5 -mt-8 relative z-10">
+        <div className="px-5 pb-5 -mt-6 sm:-mt-8 relative z-10">
           <h2
-            className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight"
+            className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight"
             data-testid="text-modal-product-name"
           >
             {product.name}
@@ -161,7 +161,7 @@ export function ProductDetailModal({
                 <span className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold">Choose Plan</span>
                 <div className="h-px flex-1 bg-gradient-to-l from-primary/30 to-transparent" />
               </div>
-              <div className="grid gap-2.5" style={{ gridTemplateColumns: `repeat(${Math.min(allOptions.length, 3)}, 1fr)` }}>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
                 {allOptions.map((option) => {
                   const isSelected = option.id === selectedVariantId;
                   const label = getOptionLabel(option);
@@ -184,17 +184,17 @@ export function ProductDetailModal({
                           <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                         </div>
                       )}
-                      <span className={`text-xs font-semibold leading-tight ${
+                      <span className={`text-[10px] sm:text-xs font-semibold leading-tight truncate w-full ${
                         outOfStock ? "text-gray-300 dark:text-white/20" : isSelected ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-white/60"
                       }`}>
                         {label}
                       </span>
-                      <span className={`text-sm font-bold ${
+                      <span className={`text-xs sm:text-sm font-bold ${
                         outOfStock ? "text-gray-300 dark:text-white/15" : isSelected ? "text-primary" : "text-gray-500 dark:text-white/40"
                       }`}>
                         ${option.price.toFixed(2)}
                       </span>
-                      <span className={`text-[9px] uppercase tracking-wider font-medium ${
+                      <span className={`text-[8px] sm:text-[9px] uppercase tracking-wider font-medium ${
                         outOfStock ? "text-red-300 dark:text-red-400/40" : isSelected ? "text-emerald-600 dark:text-emerald-400" : "text-gray-400 dark:text-white/25"
                       }`}>
                         {option.stock > 0 ? `${option.stock} in stock` : "out of stock"}
